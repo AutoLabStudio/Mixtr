@@ -2,7 +2,12 @@ import {
   Bar, InsertBar, 
   Cocktail, InsertCocktail, 
   Order, InsertOrder, 
-  SpecialOffer, InsertSpecialOffer 
+  SpecialOffer, InsertSpecialOffer,
+  Subscription, InsertSubscription,
+  MixologyClass, InsertMixologyClass,
+  ClassEnrollment, InsertClassEnrollment,
+  LoyaltyProgram, InsertLoyaltyProgram,
+  LoyaltyReward, InsertLoyaltyReward
 } from "@shared/schema";
 
 export interface IStorage {
@@ -24,6 +29,36 @@ export interface IStorage {
   
   // Special offers
   getSpecialOffers(): Promise<SpecialOffer[]>;
+  
+  // Subscription operations
+  getSubscriptions(): Promise<Subscription[]>;
+  getSubscription(id: number): Promise<Subscription | undefined>;
+  getSubscriptionsByUser(userId: string): Promise<Subscription[]>;
+  createSubscription(subscription: InsertSubscription): Promise<Subscription>;
+  updateSubscription(id: number, data: Partial<InsertSubscription>): Promise<Subscription | undefined>;
+  cancelSubscription(id: number): Promise<Subscription | undefined>;
+  
+  // Mixology Class operations
+  getMixologyClasses(): Promise<MixologyClass[]>;
+  getMixologyClass(id: number): Promise<MixologyClass | undefined>;
+  getMixologyClassesByBar(barId: number): Promise<MixologyClass[]>;
+  getUpcomingMixologyClasses(): Promise<MixologyClass[]>;
+  
+  // Class Enrollment operations
+  enrollInClass(enrollment: InsertClassEnrollment): Promise<ClassEnrollment>;
+  getClassEnrollment(id: number): Promise<ClassEnrollment | undefined>;
+  getClassEnrollmentsByUser(userId: string): Promise<ClassEnrollment[]>;
+  
+  // Loyalty Program operations
+  getLoyaltyProgram(userId: string): Promise<LoyaltyProgram | undefined>;
+  createLoyaltyProgram(program: InsertLoyaltyProgram): Promise<LoyaltyProgram>;
+  updateLoyaltyPoints(userId: string, points: number): Promise<LoyaltyProgram | undefined>;
+  
+  // Loyalty Rewards operations
+  getLoyaltyRewards(): Promise<LoyaltyReward[]>;
+  getLoyaltyReward(id: number): Promise<LoyaltyReward | undefined>;
+  getLoyaltyRewardsByTier(tier: string): Promise<LoyaltyReward[]>;
+  redeemReward(userId: string, rewardId: number): Promise<boolean>;
 }
 
 // Mock data for bars
@@ -162,24 +197,197 @@ const mockSpecialOffers: SpecialOffer[] = [
   },
 ];
 
+// Mock data for subscriptions
+const mockSubscriptions: Subscription[] = [
+  {
+    id: 1,
+    userId: "user123",
+    name: "Classic Cocktail Collection",
+    description: "Weekly delivery of 4 classic cocktails, including Old Fashioned, Negroni, Manhattan, and more.",
+    imageUrl: "https://images.pexels.com/photos/1304540/pexels-photo-1304540.jpeg?auto=compress&cs=tinysrgb&w=600",
+    price: 59.99,
+    frequency: "weekly",
+    preferences: { 
+      spirits: ["whiskey", "gin", "vodka"],
+      flavors: ["bitter", "sweet", "citrus"]
+    },
+    active: true,
+    nextDeliveryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    createdAt: new Date()
+  },
+  {
+    id: 2,
+    userId: "user456",
+    name: "Seasonal Favorites",
+    description: "Monthly delivery of 6 seasonal cocktails featuring fresh ingredients and innovative recipes.",
+    imageUrl: "https://images.pexels.com/photos/3566226/pexels-photo-3566226.jpeg?auto=compress&cs=tinysrgb&w=600",
+    price: 89.99,
+    frequency: "monthly",
+    preferences: { 
+      spirits: ["rum", "tequila", "mezcal"],
+      flavors: ["spicy", "fruity", "herbal"]
+    },
+    active: true,
+    nextDeliveryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    createdAt: new Date()
+  }
+];
+
+// Mock data for mixology classes
+const mockMixologyClasses: MixologyClass[] = [
+  {
+    id: 1,
+    title: "Whiskey Cocktail Masterclass",
+    description: "Learn the art of crafting perfect whiskey cocktails from our master mixologist.",
+    imageUrl: "https://images.pexels.com/photos/5947019/pexels-photo-5947019.jpeg?auto=compress&cs=tinysrgb&w=600",
+    instructorName: "James Wilson",
+    barId: 1,
+    price: 45,
+    duration: 90,
+    date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+    capacity: 20,
+    enrolled: 12,
+    ingredients: [
+      { name: "Premium Bourbon", quantity: "200ml" },
+      { name: "Angostura Bitters", quantity: "15ml" },
+      { name: "Sugar Cubes", quantity: "10 pieces" },
+      { name: "Orange Peel", quantity: "3 pieces" }
+    ],
+    level: "intermediate",
+    videoUrl: "https://example.com/whiskey-masterclass"
+  },
+  {
+    id: 2,
+    title: "Italian Aperitivo Hour",
+    description: "Discover the Italian tradition of aperitivo with bitter-sweet cocktails perfect for before dinner.",
+    imageUrl: "https://images.pexels.com/photos/7412136/pexels-photo-7412136.jpeg?auto=compress&cs=tinysrgb&w=600",
+    instructorName: "Sofia Ricci",
+    barId: 3,
+    price: 35,
+    duration: 60,
+    date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    capacity: 15,
+    enrolled: 8,
+    ingredients: [
+      { name: "Campari", quantity: "100ml" },
+      { name: "Sweet Vermouth", quantity: "100ml" },
+      { name: "Gin", quantity: "100ml" },
+      { name: "Prosecco", quantity: "200ml" }
+    ],
+    level: "beginner",
+    videoUrl: "https://example.com/italian-aperitivo"
+  }
+];
+
+// Mock data for class enrollments
+const mockClassEnrollments: ClassEnrollment[] = [
+  {
+    id: 1,
+    userId: "user123",
+    classId: 1,
+    purchaseDate: new Date(),
+    status: "confirmed",
+    deliveryAddress: "123 Main St, Apt 4B, New York, NY 10001"
+  }
+];
+
+// Mock data for loyalty program
+const mockLoyaltyPrograms: LoyaltyProgram[] = [
+  {
+    id: 1,
+    userId: "user123",
+    points: 250,
+    tier: "silver",
+    enrollmentDate: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
+    lastActivity: new Date()
+  },
+  {
+    id: 2,
+    userId: "user456",
+    points: 750,
+    tier: "gold",
+    enrollmentDate: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000),
+    lastActivity: new Date()
+  }
+];
+
+// Mock data for loyalty rewards
+const mockLoyaltyRewards: LoyaltyReward[] = [
+  {
+    id: 1,
+    name: "Free Classic Cocktail",
+    description: "Redeem for one free classic cocktail of your choice with any order.",
+    imageUrl: "https://images.pexels.com/photos/5947019/pexels-photo-5947019.jpeg?auto=compress&cs=tinysrgb&w=600",
+    pointsCost: 100,
+    tier: "bronze",
+    type: "free_item",
+    active: true
+  },
+  {
+    id: 2,
+    name: "Priority Access to Limited Editions",
+    description: "Get early access to limited edition seasonal cocktails before they're available to the public.",
+    imageUrl: "https://images.pexels.com/photos/3566226/pexels-photo-3566226.jpeg?auto=compress&cs=tinysrgb&w=600",
+    pointsCost: 300,
+    tier: "silver",
+    type: "exclusive_access",
+    active: true
+  },
+  {
+    id: 3,
+    name: "Free Mixology Class",
+    description: "Join any of our virtual mixology classes for free.",
+    imageUrl: "https://images.pexels.com/photos/696218/pexels-photo-696218.jpeg?auto=compress&cs=tinysrgb&w=600",
+    pointsCost: 500,
+    tier: "gold",
+    type: "experience",
+    active: true
+  }
+];
+
 export class MemStorage implements IStorage {
   private bars: Map<number, Bar>;
   private cocktails: Map<number, Cocktail>;
   private orders: Map<number, Order>;
   private specialOffers: Map<number, SpecialOffer>;
+  private subscriptions: Map<number, Subscription>;
+  private mixologyClasses: Map<number, MixologyClass>;
+  private classEnrollments: Map<number, ClassEnrollment>;
+  private loyaltyPrograms: Map<string, LoyaltyProgram>;
+  private loyaltyRewards: Map<number, LoyaltyReward>;
+  
   private orderId: number;
+  private subscriptionId: number;
+  private classId: number;
+  private enrollmentId: number;
+  private loyaltyRewardId: number;
   
   constructor() {
     this.bars = new Map();
     this.cocktails = new Map();
     this.orders = new Map();
     this.specialOffers = new Map();
+    this.subscriptions = new Map();
+    this.mixologyClasses = new Map();
+    this.classEnrollments = new Map();
+    this.loyaltyPrograms = new Map();
+    this.loyaltyRewards = new Map();
+    
     this.orderId = 1;
+    this.subscriptionId = 3;  // Starting after mock data
+    this.classId = 3;        // Starting after mock data
+    this.enrollmentId = 2;   // Starting after mock data
+    this.loyaltyRewardId = 4;  // Starting after mock data
     
     // Initialize with mock data
     mockBars.forEach(bar => this.bars.set(bar.id, bar));
     mockCocktails.forEach(cocktail => this.cocktails.set(cocktail.id, cocktail));
     mockSpecialOffers.forEach(offer => this.specialOffers.set(offer.id, offer));
+    mockSubscriptions.forEach(sub => this.subscriptions.set(sub.id, sub));
+    mockMixologyClasses.forEach(cls => this.mixologyClasses.set(cls.id, cls));
+    mockClassEnrollments.forEach(enr => this.classEnrollments.set(enr.id, enr));
+    mockLoyaltyPrograms.forEach(lp => this.loyaltyPrograms.set(lp.userId, lp));
+    mockLoyaltyRewards.forEach(reward => this.loyaltyRewards.set(reward.id, reward));
   }
   
   // Bar operations
@@ -244,6 +452,198 @@ export class MemStorage implements IStorage {
   // Special offers
   async getSpecialOffers(): Promise<SpecialOffer[]> {
     return Array.from(this.specialOffers.values());
+  }
+  
+  // Subscription operations
+  async getSubscriptions(): Promise<Subscription[]> {
+    return Array.from(this.subscriptions.values());
+  }
+  
+  async getSubscription(id: number): Promise<Subscription | undefined> {
+    return this.subscriptions.get(id);
+  }
+  
+  async getSubscriptionsByUser(userId: string): Promise<Subscription[]> {
+    return Array.from(this.subscriptions.values()).filter(
+      subscription => subscription.userId === userId
+    );
+  }
+  
+  async createSubscription(subscriptionData: InsertSubscription): Promise<Subscription> {
+    const id = this.subscriptionId++;
+    const createdAt = new Date();
+    const subscription: Subscription = { ...subscriptionData, id, createdAt };
+    this.subscriptions.set(id, subscription);
+    return subscription;
+  }
+  
+  async updateSubscription(id: number, data: Partial<InsertSubscription>): Promise<Subscription | undefined> {
+    const subscription = this.subscriptions.get(id);
+    if (subscription) {
+      const updatedSubscription = { ...subscription, ...data };
+      this.subscriptions.set(id, updatedSubscription);
+      return updatedSubscription;
+    }
+    return undefined;
+  }
+  
+  async cancelSubscription(id: number): Promise<Subscription | undefined> {
+    const subscription = this.subscriptions.get(id);
+    if (subscription) {
+      const updatedSubscription = { ...subscription, active: false };
+      this.subscriptions.set(id, updatedSubscription);
+      return updatedSubscription;
+    }
+    return undefined;
+  }
+  
+  // Mixology Class operations
+  async getMixologyClasses(): Promise<MixologyClass[]> {
+    return Array.from(this.mixologyClasses.values());
+  }
+  
+  async getMixologyClass(id: number): Promise<MixologyClass | undefined> {
+    return this.mixologyClasses.get(id);
+  }
+  
+  async getMixologyClassesByBar(barId: number): Promise<MixologyClass[]> {
+    return Array.from(this.mixologyClasses.values()).filter(
+      cls => cls.barId === barId
+    );
+  }
+  
+  async getUpcomingMixologyClasses(): Promise<MixologyClass[]> {
+    const now = new Date();
+    return Array.from(this.mixologyClasses.values()).filter(
+      cls => cls.date > now
+    );
+  }
+  
+  // Class Enrollment operations
+  async enrollInClass(enrollmentData: InsertClassEnrollment): Promise<ClassEnrollment> {
+    const id = this.enrollmentId++;
+    const purchaseDate = new Date();
+    const enrollment: ClassEnrollment = { ...enrollmentData, id, purchaseDate };
+    this.classEnrollments.set(id, enrollment);
+    
+    // Update the class enrollment count
+    const mixologyClass = this.mixologyClasses.get(enrollmentData.classId);
+    if (mixologyClass) {
+      const updatedClass = { ...mixologyClass, enrolled: mixologyClass.enrolled + 1 };
+      this.mixologyClasses.set(mixologyClass.id, updatedClass);
+    }
+    
+    return enrollment;
+  }
+  
+  async getClassEnrollment(id: number): Promise<ClassEnrollment | undefined> {
+    return this.classEnrollments.get(id);
+  }
+  
+  async getClassEnrollmentsByUser(userId: string): Promise<ClassEnrollment[]> {
+    return Array.from(this.classEnrollments.values()).filter(
+      enrollment => enrollment.userId === userId
+    );
+  }
+  
+  // Loyalty Program operations
+  async getLoyaltyProgram(userId: string): Promise<LoyaltyProgram | undefined> {
+    return this.loyaltyPrograms.get(userId);
+  }
+  
+  async createLoyaltyProgram(programData: InsertLoyaltyProgram): Promise<LoyaltyProgram> {
+    const enrollmentDate = new Date();
+    const lastActivity = new Date();
+    const points = 0;
+    const program: LoyaltyProgram = { 
+      ...programData, 
+      id: this.loyaltyPrograms.size + 1, 
+      points, 
+      enrollmentDate, 
+      lastActivity 
+    };
+    this.loyaltyPrograms.set(programData.userId, program);
+    return program;
+  }
+  
+  async updateLoyaltyPoints(userId: string, points: number): Promise<LoyaltyProgram | undefined> {
+    const program = this.loyaltyPrograms.get(userId);
+    if (program) {
+      let tier = program.tier;
+      const newPoints = program.points + points;
+      
+      // Update tier based on new points
+      if (newPoints >= 750) {
+        tier = "gold";
+      } else if (newPoints >= 300) {
+        tier = "silver";
+      } else if (newPoints >= 100) {
+        tier = "bronze";
+      }
+      
+      const updatedProgram = { 
+        ...program, 
+        points: newPoints, 
+        tier, 
+        lastActivity: new Date() 
+      };
+      this.loyaltyPrograms.set(userId, updatedProgram);
+      return updatedProgram;
+    }
+    return undefined;
+  }
+  
+  // Loyalty Rewards operations
+  async getLoyaltyRewards(): Promise<LoyaltyReward[]> {
+    return Array.from(this.loyaltyRewards.values()).filter(reward => reward.active);
+  }
+  
+  async getLoyaltyReward(id: number): Promise<LoyaltyReward | undefined> {
+    return this.loyaltyRewards.get(id);
+  }
+  
+  async getLoyaltyRewardsByTier(tier: string): Promise<LoyaltyReward[]> {
+    // Get rewards for the specified tier and all lower tiers
+    const tierLevels = { "bronze": 1, "silver": 2, "gold": 3, "platinum": 4 };
+    const requestedTierLevel = tierLevels[tier as keyof typeof tierLevels] || 0;
+    
+    return Array.from(this.loyaltyRewards.values()).filter(reward => {
+      const rewardTierLevel = tierLevels[reward.tier as keyof typeof tierLevels] || 0;
+      return reward.active && rewardTierLevel <= requestedTierLevel;
+    });
+  }
+  
+  async redeemReward(userId: string, rewardId: number): Promise<boolean> {
+    const program = this.loyaltyPrograms.get(userId);
+    const reward = this.loyaltyRewards.get(rewardId);
+    
+    if (!program || !reward || !reward.active) {
+      return false;
+    }
+    
+    // Check if user has enough points
+    if (program.points < reward.pointsCost) {
+      return false;
+    }
+    
+    // Check if user has high enough tier
+    const tierLevels = { "bronze": 1, "silver": 2, "gold": 3, "platinum": 4 };
+    const userTierLevel = tierLevels[program.tier as keyof typeof tierLevels] || 0;
+    const rewardTierLevel = tierLevels[reward.tier as keyof typeof tierLevels] || 0;
+    
+    if (userTierLevel < rewardTierLevel) {
+      return false;
+    }
+    
+    // Deduct points and update last activity
+    const updatedProgram = { 
+      ...program, 
+      points: program.points - reward.pointsCost, 
+      lastActivity: new Date() 
+    };
+    this.loyaltyPrograms.set(userId, updatedProgram);
+    
+    return true;
   }
 }
 

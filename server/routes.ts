@@ -1,7 +1,10 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertOrderSchema } from "@shared/schema";
+import { 
+  insertOrderSchema, insertSubscriptionSchema, 
+  insertClassEnrollmentSchema, insertLoyaltyProgramSchema 
+} from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // API Routes

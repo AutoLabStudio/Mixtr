@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, doublePrecision, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, doublePrecision, timestamp, jsonb, date } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -53,6 +53,71 @@ export const specialOffers = pgTable("special_offers", {
   type: text("type").notNull(),
 });
 
+// Subscription model
+export const subscriptions = pgTable("subscriptions", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  imageUrl: text("image_url").notNull(),
+  price: doublePrecision("price").notNull(),
+  frequency: text("frequency").notNull(), // weekly, biweekly, monthly
+  preferences: jsonb("preferences"), // spirit preferences, flavor preferences
+  active: boolean("active").default(true),
+  nextDeliveryDate: date("next_delivery_date").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Mixology Class model
+export const mixologyClasses = pgTable("mixology_classes", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  imageUrl: text("image_url").notNull(),
+  instructorName: text("instructor_name").notNull(),
+  barId: integer("bar_id").notNull(),
+  price: doublePrecision("price").notNull(),
+  duration: integer("duration").notNull(), // in minutes
+  date: timestamp("date").notNull(),
+  capacity: integer("capacity").notNull(),
+  enrolled: integer("enrolled").default(0),
+  ingredients: jsonb("ingredients").notNull(), // list of ingredients that will be delivered
+  level: text("level").notNull(), // beginner, intermediate, advanced
+  videoUrl: text("video_url"),
+});
+
+// Class Enrollment model
+export const classEnrollments = pgTable("class_enrollments", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  classId: integer("class_id").notNull(),
+  purchaseDate: timestamp("purchase_date").defaultNow().notNull(),
+  status: text("status").notNull(),
+  deliveryAddress: text("delivery_address").notNull(),
+});
+
+// Loyalty Program model
+export const loyaltyProgram = pgTable("loyalty_program", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  points: integer("points").default(0),
+  tier: text("tier").notNull(), // bronze, silver, gold, platinum
+  enrollmentDate: timestamp("enrollment_date").defaultNow().notNull(),
+  lastActivity: timestamp("last_activity").defaultNow().notNull(),
+});
+
+// Loyalty Reward model
+export const loyaltyRewards = pgTable("loyalty_rewards", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  imageUrl: text("image_url").notNull(),
+  pointsCost: integer("points_cost").notNull(),
+  tier: text("tier").notNull(), // minimum tier required
+  type: text("type").notNull(), // free drink, discount, exclusive access, etc.
+  active: boolean("active").default(true),
+});
+
 // Insert schemas
 export const insertBarSchema = createInsertSchema(bars).omit({
   id: true,
@@ -71,6 +136,31 @@ export const insertSpecialOfferSchema = createInsertSchema(specialOffers).omit({
   id: true,
 });
 
+export const insertSubscriptionSchema = createInsertSchema(subscriptions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertMixologyClassSchema = createInsertSchema(mixologyClasses).omit({
+  id: true,
+});
+
+export const insertClassEnrollmentSchema = createInsertSchema(classEnrollments).omit({
+  id: true,
+  purchaseDate: true,
+});
+
+export const insertLoyaltyProgramSchema = createInsertSchema(loyaltyProgram).omit({
+  id: true,
+  points: true,
+  enrollmentDate: true,
+  lastActivity: true,
+});
+
+export const insertLoyaltyRewardSchema = createInsertSchema(loyaltyRewards).omit({
+  id: true,
+});
+
 // Interface types
 export type Bar = typeof bars.$inferSelect;
 export type InsertBar = z.infer<typeof insertBarSchema>;
@@ -83,6 +173,21 @@ export type InsertOrder = z.infer<typeof insertOrderSchema>;
 
 export type SpecialOffer = typeof specialOffers.$inferSelect;
 export type InsertSpecialOffer = z.infer<typeof insertSpecialOfferSchema>;
+
+export type Subscription = typeof subscriptions.$inferSelect;
+export type InsertSubscription = z.infer<typeof insertSubscriptionSchema>;
+
+export type MixologyClass = typeof mixologyClasses.$inferSelect;
+export type InsertMixologyClass = z.infer<typeof insertMixologyClassSchema>;
+
+export type ClassEnrollment = typeof classEnrollments.$inferSelect;
+export type InsertClassEnrollment = z.infer<typeof insertClassEnrollmentSchema>;
+
+export type LoyaltyProgram = typeof loyaltyProgram.$inferSelect;
+export type InsertLoyaltyProgram = z.infer<typeof insertLoyaltyProgramSchema>;
+
+export type LoyaltyReward = typeof loyaltyRewards.$inferSelect;
+export type InsertLoyaltyReward = z.infer<typeof insertLoyaltyRewardSchema>;
 
 // CartItem interface for the frontend
 export interface CartItem {
