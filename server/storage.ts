@@ -472,7 +472,14 @@ export class MemStorage implements IStorage {
   async createSubscription(subscriptionData: InsertSubscription): Promise<Subscription> {
     const id = this.subscriptionId++;
     const createdAt = new Date();
-    const subscription: Subscription = { ...subscriptionData, id, createdAt };
+    const active = subscriptionData.active !== undefined ? subscriptionData.active : true;
+    const subscription: Subscription = { 
+      ...subscriptionData, 
+      id, 
+      createdAt, 
+      active,
+      preferences: subscriptionData.preferences || {}
+    };
     this.subscriptions.set(id, subscription);
     return subscription;
   }
@@ -529,7 +536,8 @@ export class MemStorage implements IStorage {
     // Update the class enrollment count
     const mixologyClass = this.mixologyClasses.get(enrollmentData.classId);
     if (mixologyClass) {
-      const updatedClass = { ...mixologyClass, enrolled: mixologyClass.enrolled + 1 };
+      const currentEnrolled = mixologyClass.enrolled || 0;
+      const updatedClass = { ...mixologyClass, enrolled: currentEnrolled + 1 };
       this.mixologyClasses.set(mixologyClass.id, updatedClass);
     }
     
@@ -570,7 +578,8 @@ export class MemStorage implements IStorage {
     const program = this.loyaltyPrograms.get(userId);
     if (program) {
       let tier = program.tier;
-      const newPoints = program.points + points;
+      const currentPoints = program.points || 0;
+      const newPoints = currentPoints + points;
       
       // Update tier based on new points
       if (newPoints >= 750) {
@@ -621,8 +630,10 @@ export class MemStorage implements IStorage {
       return false;
     }
     
+    const currentPoints = program.points || 0;
+    
     // Check if user has enough points
-    if (program.points < reward.pointsCost) {
+    if (currentPoints < reward.pointsCost) {
       return false;
     }
     
@@ -638,7 +649,7 @@ export class MemStorage implements IStorage {
     // Deduct points and update last activity
     const updatedProgram = { 
       ...program, 
-      points: program.points - reward.pointsCost, 
+      points: currentPoints - reward.pointsCost, 
       lastActivity: new Date() 
     };
     this.loyaltyPrograms.set(userId, updatedProgram);

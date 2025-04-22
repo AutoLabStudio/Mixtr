@@ -62,9 +62,9 @@ export const subscriptions = pgTable("subscriptions", {
   imageUrl: text("image_url").notNull(),
   price: doublePrecision("price").notNull(),
   frequency: text("frequency").notNull(), // weekly, biweekly, monthly
-  preferences: jsonb("preferences"), // spirit preferences, flavor preferences
+  preferences: jsonb("preferences").notNull(), // spirit preferences, flavor preferences
   active: boolean("active").default(true),
-  nextDeliveryDate: date("next_delivery_date").notNull(),
+  nextDeliveryDate: timestamp("next_delivery_date").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
