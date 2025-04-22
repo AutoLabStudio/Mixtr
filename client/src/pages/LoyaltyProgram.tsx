@@ -1,5 +1,5 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -49,7 +49,10 @@ export default function LoyaltyProgramPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           userId, 
-          tier: 'bronze'
+          tier: 'bronze',
+          points: 100, // Start with welcome points
+          enrollmentDate: new Date().toISOString(),
+          lastActivity: new Date().toISOString()
         })
       });
 
@@ -157,11 +160,26 @@ export default function LoyaltyProgramPage() {
     }
   };
 
-  // Handle loading state
-  if (programLoading) {
+  // Auto-enroll user if needed
+  React.useEffect(() => {
+    // If we tried to load the program and got an error (likely 404), offer to enroll
+    if (programError && !program && !enrolling) {
+      // Automatically trigger enrollment
+      setEnrolling(true);
+      enrollMutation.mutate();
+    }
+  }, [programError, program, enrolling]);
+
+  // Handle loading states
+  if (programLoading || enrollMutation.isPending) {
     return <div className="container mx-auto py-8">
       <h1 className="text-3xl font-bold mb-6">Mixtr Rewards</h1>
       <div className="h-48 w-full bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse"></div>
+      {enrollMutation.isPending && (
+        <div className="mt-4 text-center">
+          <p>Enrolling you in Mixtr Rewards...</p>
+        </div>
+      )}
     </div>;
   }
   
