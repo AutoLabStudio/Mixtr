@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { ShoppingBag, Menu, X, User, LogIn, LogOut } from "lucide-react";
+import { ShoppingBag, Menu, X, User, LogIn, LogOut, Share2 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -18,7 +18,8 @@ export function Header() {
     { name: "Top Bars", href: "/#bars" },
     { name: "Subscriptions", href: "/subscriptions", highlight: true },
     { name: "Mixology Classes", href: "/mixology-classes", highlight: true },
-    { name: "Loyalty Program", href: "/loyalty-program", highlight: true }
+    { name: "Loyalty Program", href: "/loyalty-program", highlight: true },
+    { name: "Social", href: "/social", highlight: true, icon: Share2 }
   ];
 
   return (

@@ -14,6 +14,7 @@ import OrderConfirmation from "@/pages/OrderConfirmation";
 import Subscriptions from "@/pages/Subscriptions";
 import MixologyClasses from "@/pages/MixologyClasses";
 import LoyaltyProgram from "@/pages/LoyaltyProgram";
+import Social from "@/pages/Social";
 import AuthPage from "@/pages/AuthPage";
 import PartnerAuth from "@/pages/PartnerAuth";
 import PartnerDashboard from "@/pages/PartnerDashboard";
@@ -36,6 +37,7 @@ function Router() {
       <Route path="/subscriptions" component={Subscriptions} />
       <Route path="/mixology-classes" component={MixologyClasses} />
       <Route path="/loyalty-program" component={LoyaltyProgram} />
+      <Route path="/social" component={Social} />
       {/* Auth Routes */}
       <Route path="/auth" component={AuthPage} />
       {/* Partner Routes */}
