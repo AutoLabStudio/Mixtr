@@ -1,5 +1,6 @@
-import { pgTable, text, serial, integer, boolean, doublePrecision, timestamp, jsonb, date } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, doublePrecision, timestamp, jsonb, date, uniqueIndex, foreignKey } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
+import { relations } from "drizzle-orm";
 import { z } from "zod";
 
 // Bar model
@@ -121,6 +122,49 @@ export const loyaltyRewards = pgTable("loyalty_rewards", {
   active: boolean("active").default(true),
 });
 
+// User model
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  username: text("username").notNull(),
+  password: text("password").notNull(),
+  email: text("email").notNull(),
+  role: text("role").notNull().default("customer"), // customer or partner
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => {
+  return {
+    usernameIdx: uniqueIndex("username_idx").on(table.username),
+    emailIdx: uniqueIndex("email_idx").on(table.email),
+  };
+});
+
+// Partner model (extends users for authentication)
+export const partners = pgTable("partners", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  barId: integer("bar_id").notNull().references(() => bars.id, { onDelete: "cascade" }),
+  position: text("position").notNull(),
+  phone: text("phone").notNull(),
+  approved: boolean("approved").default(false),
+});
+
+// Promotion model
+export const promotions = pgTable("promotions", {
+  id: serial("id").primaryKey(),
+  barId: integer("bar_id").notNull().references(() => bars.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  imageUrl: text("image_url").notNull(),
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date").notNull(),
+  discountPercentage: integer("discount_percentage"),
+  discountAmount: doublePrecision("discount_amount"),
+  promoCode: text("promo_code").notNull(),
+  usageLimit: integer("usage_limit"),
+  usageCount: integer("usage_count").default(0),
+  active: boolean("active").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Insert schemas
 export const insertBarSchema = createInsertSchema(bars).omit({
   id: true,
@@ -164,6 +208,21 @@ export const insertLoyaltyRewardSchema = createInsertSchema(loyaltyRewards).omit
   id: true,
 });
 
+export const insertUserSchema = createInsertSchema(users).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertPartnerSchema = createInsertSchema(partners).omit({
+  id: true,
+});
+
+export const insertPromotionSchema = createInsertSchema(promotions).omit({
+  id: true,
+  usageCount: true,
+  createdAt: true,
+});
+
 // Interface types
 export type Bar = typeof bars.$inferSelect;
 export type InsertBar = z.infer<typeof insertBarSchema>;
@@ -192,6 +251,15 @@ export type InsertLoyaltyProgram = z.infer<typeof insertLoyaltyProgramSchema>;
 export type LoyaltyReward = typeof loyaltyRewards.$inferSelect;
 export type InsertLoyaltyReward = z.infer<typeof insertLoyaltyRewardSchema>;
 
+export type User = typeof users.$inferSelect;
+export type InsertUser = z.infer<typeof insertUserSchema>;
+
+export type Partner = typeof partners.$inferSelect;
+export type InsertPartner = z.infer<typeof insertPartnerSchema>;
+
+export type Promotion = typeof promotions.$inferSelect;
+export type InsertPromotion = z.infer<typeof insertPromotionSchema>;
+
 // CartItem interface for the frontend
 export interface CartItem {
   id: number;
@@ -201,3 +269,54 @@ export interface CartItem {
   imageUrl: string;
   quantity: number;
 }
+
+// Relations
+export const barsRelations = relations(bars, ({ many }) => ({
+  cocktails: many(cocktails),
+  mixologyClasses: many(mixologyClasses),
+  partners: many(partners),
+  promotions: many(promotions),
+}));
+
+export const cocktailsRelations = relations(cocktails, ({ one }) => ({
+  bar: one(bars, {
+    fields: [cocktails.barId],
+    references: [bars.id],
+  }),
+}));
+
+export const mixologyClassesRelations = relations(mixologyClasses, ({ one }) => ({
+  bar: one(bars, {
+    fields: [mixologyClasses.barId],
+    references: [bars.id],
+  }),
+}));
+
+export const classEnrollmentsRelations = relations(classEnrollments, ({ one }) => ({
+  mixologyClass: one(mixologyClasses, {
+    fields: [classEnrollments.classId],
+    references: [mixologyClasses.id],
+  }),
+}));
+
+export const partnersRelations = relations(partners, ({ one }) => ({
+  user: one(users, {
+    fields: [partners.userId],
+    references: [users.id],
+  }),
+  bar: one(bars, {
+    fields: [partners.barId],
+    references: [bars.id],
+  }),
+}));
+
+export const usersRelations = relations(users, ({ many }) => ({
+  partners: many(partners),
+}));
+
+export const promotionsRelations = relations(promotions, ({ one }) => ({
+  bar: one(bars, {
+    fields: [promotions.barId],
+    references: [bars.id],
+  }),
+}));
