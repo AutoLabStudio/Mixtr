@@ -1,11 +1,13 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
+import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { partnerRouter } from "./partner-routes";
 import { 
   insertOrderSchema, insertSubscriptionSchema, 
-  insertClassEnrollmentSchema, insertLoyaltyProgramSchema 
+  insertClassEnrollmentSchema, insertLoyaltyProgramSchema,
+  Order
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -435,5 +437,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   const httpServer = createServer(app);
+  
+  // WebSocket server for real-time order tracking
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  
+  // Store client connections by userId and orderId for targeted updates
+  interface OrderConnection {
+    userId: string;
+    orderId: number;
+    ws: WebSocket;
+  }
+  
+  const orderConnections: OrderConnection[] = [];
+  
+  wss.on('connection', (ws: WebSocket) => {
+    // Connection established
+    console.log('WebSocket connection established');
+    
+    // Parse connection parameters
+    ws.on('message', (message: string) => {
+      try {
+        const data = JSON.parse(message.toString());
+        
+        // Register the connection for tracking a specific order
+        if (data.type === 'register') {
+          if (data.userId && data.orderId) {
+            // Store the connection with user and order details
+            orderConnections.push({
+              userId: data.userId,
+              orderId: data.orderId,
+              ws
+            });
+            
+            console.log(`WebSocket registered for user ${data.userId}, order ${data.orderId}`);
+            
+            // Send current order status
+            storage.getOrder(data.orderId).then(order => {
+              if (order) {
+                ws.send(JSON.stringify({
+                  type: 'orderUpdate',
+                  order
+                }));
+              }
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error processing WebSocket message:', error);
+      }
+    });
+    
+    // Handle disconnection
+    ws.on('close', () => {
+      // Remove connection from tracking array
+      const index = orderConnections.findIndex(conn => conn.ws === ws);
+      if (index !== -1) {
+        orderConnections.splice(index, 1);
+      }
+      console.log('WebSocket connection closed');
+    });
+  });
+  
+  // Override the updateOrderStatus method to broadcast updates via WebSocket
+  const originalUpdateOrderStatus = storage.updateOrderStatus;
+  storage.updateOrderStatus = async (id: number, status: string) => {
+    const updatedOrder = await originalUpdateOrderStatus(id, status);
+    
+    if (updatedOrder) {
+      // Broadcast to all connected clients tracking this order
+      const matchingConnections = orderConnections.filter(conn => conn.orderId === id);
+      
+      matchingConnections.forEach(conn => {
+        if (conn.ws.readyState === WebSocket.OPEN) {
+          conn.ws.send(JSON.stringify({
+            type: 'orderUpdate',
+            order: updatedOrder
+          }));
+        }
+      });
+    }
+    
+    return updatedOrder;
+  };
+  
   return httpServer;
 }

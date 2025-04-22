@@ -1,18 +1,24 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams, Link } from "wouter";
 import { Helmet } from "react-helmet";
+import { useAuth } from "@/hooks/use-auth";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Check, Clock, MapPin, ArrowRight, Home } from "lucide-react";
+import { Check, Clock, MapPin, ArrowRight, Home, BarChart, Share2 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatCurrency, calculateETA, getOrderStatusSteps } from "@/lib/utils";
+import { OrderTracker } from "@/components/OrderTracker";
 import type { Order } from "@shared/schema";
 
 export default function OrderConfirmation() {
   const { id } = useParams();
   const parsedId = id ? parseInt(id) : undefined;
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState("standard");
   
   const { data: order, isLoading, error } = useQuery<Order>({
     queryKey: [`/api/orders/${parsedId}`],
@@ -69,75 +75,111 @@ export default function OrderConfirmation() {
             </p>
           </div>
           
-          <Card className="overflow-hidden mb-8">
-            <div className="bg-muted p-6">
-              <h2 className="font-serif font-semibold text-xl mb-4">Order Status</h2>
+          <div className="mb-8">
+            <Tabs 
+              defaultValue="standard" 
+              value={activeTab} 
+              onValueChange={setActiveTab} 
+              className="w-full"
+            >
+              <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsTrigger value="standard" className="flex items-center gap-2">
+                  <BarChart className="h-4 w-4" /> Standard View
+                </TabsTrigger>
+                <TabsTrigger value="live" className="flex items-center gap-2">
+                  <Share2 className="h-4 w-4" /> Live Tracking
+                </TabsTrigger>
+              </TabsList>
               
-              <div className="relative">
-                <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-border"></div>
-                {["pending", "confirmed", "preparing", "out_for_delivery", "delivered"].map((status, index) => {
-                  const isActive = statusInfo.step >= index;
-                  return (
-                    <div key={status} className="relative mb-6 last:mb-0">
-                      <div className="flex items-center">
-                        <div className={`h-12 w-12 rounded-full flex items-center justify-center z-10 ${
-                          isActive ? 'bg-primary text-primary-foreground' : 'bg-muted-foreground/20 text-muted-foreground'
-                        }`}>
-                          {index === 0 && <Clock className="h-5 w-5" />}
-                          {index === 1 && <Check className="h-5 w-5" />}
-                          {index === 2 && <div className="h-5 w-5 flex items-center justify-center">
-                            <span className="text-xs font-medium">MIX</span>
-                          </div>}
-                          {index === 3 && <div className="h-5 w-5 rotate-45">
-                            <ArrowRight className="h-5 w-5" />
-                          </div>}
-                          {index === 4 && <Home className="h-5 w-5" />}
+              <TabsContent value="standard">
+                <Card className="overflow-hidden">
+                  <div className="bg-muted p-6">
+                    <h2 className="font-serif font-semibold text-xl mb-4">Order Status</h2>
+                    
+                    <div className="relative">
+                      <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-border"></div>
+                      {["pending", "confirmed", "preparing", "in_transit", "delivered"].map((status, index) => {
+                        const isActive = statusInfo.step >= index;
+                        return (
+                          <div key={status} className="relative mb-6 last:mb-0">
+                            <div className="flex items-center">
+                              <div className={`h-12 w-12 rounded-full flex items-center justify-center z-10 ${
+                                isActive ? 'bg-primary text-primary-foreground' : 'bg-muted-foreground/20 text-muted-foreground'
+                              }`}>
+                                {index === 0 && <Clock className="h-5 w-5" />}
+                                {index === 1 && <Check className="h-5 w-5" />}
+                                {index === 2 && <div className="h-5 w-5 flex items-center justify-center">
+                                  <span className="text-xs font-medium">MIX</span>
+                                </div>}
+                                {index === 3 && <div className="h-5 w-5 rotate-45">
+                                  <ArrowRight className="h-5 w-5" />
+                                </div>}
+                                {index === 4 && <Home className="h-5 w-5" />}
+                              </div>
+                              <div className="ml-4 flex-1">
+                                <p className={`font-medium ${isActive ? 'text-foreground' : 'text-muted-foreground'}`}>
+                                  {index === 0 && "Order Placed"}
+                                  {index === 1 && "Order Confirmed"}
+                                  {index === 2 && "Preparing Cocktails"}
+                                  {index === 3 && "Out for Delivery"}
+                                  {index === 4 && "Delivered"}
+                                </p>
+                                {index === statusInfo.step && (
+                                  <p className="text-sm text-muted-foreground">
+                                    {status === "pending" && "We've received your order and are processing it"}
+                                    {status === "confirmed" && "Your order has been confirmed and payment processed"}
+                                    {status === "preparing" && "Our mixologists are preparing your cocktails"}
+                                    {status === "in_transit" && "Your cocktails are on the way"}
+                                    {status === "delivered" && "Enjoy your cocktails!"}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  
+                  <div className="p-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <h3 className="font-medium mb-2">Estimated Delivery</h3>
+                        <div className="flex items-center text-lg font-semibold">
+                          <Clock className="mr-2 h-5 w-5 text-primary" />
+                          <span>{eta}</span>
                         </div>
-                        <div className="ml-4 flex-1">
-                          <p className={`font-medium ${isActive ? 'text-foreground' : 'text-muted-foreground'}`}>
-                            {index === 0 && "Order Placed"}
-                            {index === 1 && "Order Confirmed"}
-                            {index === 2 && "Preparing Cocktails"}
-                            {index === 3 && "Out for Delivery"}
-                            {index === 4 && "Delivered"}
-                          </p>
-                          {index === statusInfo.step && (
-                            <p className="text-sm text-muted-foreground">
-                              {status === "pending" && "We've received your order and are processing it"}
-                              {status === "confirmed" && "Your order has been confirmed and payment processed"}
-                              {status === "preparing" && "Our mixologists are preparing your cocktails"}
-                              {status === "out_for_delivery" && "Your cocktails are on the way"}
-                              {status === "delivered" && "Enjoy your cocktails!"}
-                            </p>
-                          )}
+                      </div>
+                      
+                      <div>
+                        <h3 className="font-medium mb-2">Delivery Address</h3>
+                        <div className="flex items-start">
+                          <MapPin className="mr-2 h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                          <span className="text-muted-foreground">{order.deliveryAddress}</span>
                         </div>
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            </div>
-            
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h3 className="font-medium mb-2">Estimated Delivery</h3>
-                  <div className="flex items-center text-lg font-semibold">
-                    <Clock className="mr-2 h-5 w-5 text-primary" />
-                    <span>{eta}</span>
                   </div>
-                </div>
-                
-                <div>
-                  <h3 className="font-medium mb-2">Delivery Address</h3>
-                  <div className="flex items-start">
-                    <MapPin className="mr-2 h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                    <span className="text-muted-foreground">{order.deliveryAddress}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Card>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="live">
+                {user ? (
+                  <OrderTracker userId={user.id.toString()} orderId={order.id} />
+                ) : (
+                  <Card className="p-6 text-center">
+                    <h3 className="font-medium mb-2">Login Required</h3>
+                    <p className="text-muted-foreground mb-4">
+                      You need to be logged in to use the real-time order tracking feature.
+                    </p>
+                    <Button asChild>
+                      <Link href="/auth">Login or Register</Link>
+                    </Button>
+                  </Card>
+                )}
+              </TabsContent>
+            </Tabs>
+          </div>
           
           <Card className="mb-8">
             <div className="p-6">
