@@ -32,7 +32,7 @@ export function HeroSection() {
               className="w-full md:w-auto border-primary text-primary hover:bg-primary/10"
               asChild
             >
-              <Link href="/#bars">
+              <Link href="/bars">
                 <MapPin className="mr-2 h-5 w-5" /> Find Nearby Bars
               </Link>
             </Button>

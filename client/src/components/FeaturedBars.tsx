@@ -42,8 +42,14 @@ export function FeaturedBars() {
         </div>
 
         <div className="text-center mt-10">
-          <Button variant="outline" className="border-accent text-accent hover:bg-accent/10">
-            View All Partner Bars <ChevronRight className="ml-2 h-4 w-4" />
+          <Button 
+            variant="outline" 
+            className="border-accent text-accent hover:bg-accent/10"
+            asChild
+          >
+            <Link href="/bars">
+              View All Partner Bars <ChevronRight className="ml-2 h-4 w-4" />
+            </Link>
           </Button>
         </div>
       </div>
