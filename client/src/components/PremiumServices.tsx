@@ -58,7 +58,10 @@ export function PremiumServices() {
             </CardContent>
             <CardFooter>
               <Link href="/subscriptions">
-                <Button className="w-full">
+                <Button 
+                  className="w-full"
+                  onClick={() => window.scrollTo(0, 0)}
+                >
                   Explore Subscriptions
                 </Button>
               </Link>
@@ -107,7 +110,10 @@ export function PremiumServices() {
             </CardContent>
             <CardFooter>
               <Link href="/mixology-classes">
-                <Button className="w-full">
+                <Button 
+                  className="w-full"
+                  onClick={() => window.scrollTo(0, 0)}
+                >
                   Browse Classes
                 </Button>
               </Link>
@@ -156,7 +162,10 @@ export function PremiumServices() {
             </CardContent>
             <CardFooter>
               <Link href="/loyalty-program">
-                <Button className="w-full">
+                <Button 
+                  className="w-full"
+                  onClick={() => window.scrollTo(0, 0)}
+                >
                   Join Mixtr Rewards
                 </Button>
               </Link>
