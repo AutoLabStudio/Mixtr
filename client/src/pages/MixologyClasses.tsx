@@ -322,51 +322,114 @@ export default function MixologyClassesPage() {
 
       <div className="mt-12 bg-primary/5 p-8 rounded-lg">
         <h2 className="text-2xl font-semibold mb-2">The Mixology Class Experience</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-          <div className="text-center">
-            <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M9 5H2v7l6.29 6.29c.94.94 2.48.94 3.42 0l3.58-3.58c.94-.94.94-2.48 0-3.42L9 5Z"></path><path d="M6 9.01V9"></path><path d="m15 5 6.3 6.3a2.4 2.4 0 0 1 0 3.4L17 19"></path></svg>
+        
+        <Tabs defaultValue={classType} onValueChange={(value) => setClassType(value as "virtual" | "in-person")}>
+          <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-6">
+            <TabsTrigger value="virtual">Virtual</TabsTrigger>
+            <TabsTrigger value="in-person">In-Person</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="virtual">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+              <div className="text-center">
+                <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M9 5H2v7l6.29 6.29c.94.94 2.48.94 3.42 0l3.58-3.58c.94-.94.94-2.48 0-3.42L9 5Z"></path><path d="M6 9.01V9"></path><path d="m15 5 6.3 6.3a2.4 2.4 0 0 1 0 3.4L17 19"></path></svg>
+                </div>
+                <h3 className="text-lg font-medium mb-2">Ingredient Kits Delivered</h3>
+                <p className="text-muted-foreground">We deliver all the premium ingredients you need straight to your door.</p>
+              </div>
+              <div className="text-center">
+                <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><rect x="2" y="3" width="20" height="14" rx="2"></rect><line x1="8" x2="16" y1="21" y2="21"></line><line x1="12" x2="12" y1="17" y2="21"></line></svg>
+                </div>
+                <h3 className="text-lg font-medium mb-2">Live Interactive Sessions</h3>
+                <p className="text-muted-foreground">Join live online sessions where you can ask questions and get real-time feedback.</p>
+              </div>
+              <div className="text-center">
+                <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z"></path><path d="M8 9h8"></path><path d="M8 15h8"></path><path d="M12 9v6"></path></svg>
+                </div>
+                <h3 className="text-lg font-medium mb-2">Learn at Your Pace</h3>
+                <p className="text-muted-foreground">Access recordings for 30 days after the live class to practice at your convenience.</p>
+              </div>
             </div>
-            <h3 className="text-lg font-medium mb-2">Ingredient Kits Delivered</h3>
-            <p className="text-muted-foreground">We deliver all the premium ingredients you need straight to your door.</p>
-          </div>
-          <div className="text-center">
-            <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><rect x="2" y="3" width="20" height="14" rx="2"></rect><line x1="8" x2="16" y1="21" y2="21"></line><line x1="12" x2="12" y1="17" y2="21"></line></svg>
+          </TabsContent>
+          
+          <TabsContent value="in-person">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+              <div className="text-center">
+                <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"></path><path d="m9 12 2 2 4-4"></path></svg>
+                </div>
+                <h3 className="text-lg font-medium mb-2">Premium Bar Experience</h3>
+                <p className="text-muted-foreground">Enjoy the atmosphere of our exclusive partner bars with professional setups.</p>
+              </div>
+              <div className="text-center">
+                <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                </div>
+                <h3 className="text-lg font-medium mb-2">Hands-On Training</h3>
+                <p className="text-muted-foreground">Get personalized guidance and feedback directly from professional mixologists.</p>
+              </div>
+              <div className="text-center">
+                <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M17 8h1a4 4 0 1 1 0 8h-1"></path><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"></path><line x1="6" x2="6" y1="2" y2="4"></line><line x1="10" x2="10" y1="2" y2="4"></line><line x1="14" x2="14" y1="2" y2="4"></line></svg>
+                </div>
+                <h3 className="text-lg font-medium mb-2">Taste as You Learn</h3>
+                <p className="text-muted-foreground">Sample premium spirits and ingredients as you learn to craft perfect cocktails.</p>
+              </div>
             </div>
-            <h3 className="text-lg font-medium mb-2">Live Interactive Classes</h3>
-            <p className="text-muted-foreground">Join live sessions where you can ask questions and get real-time feedback.</p>
-          </div>
-          <div className="text-center">
-            <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z"></path><path d="M8 9h8"></path><path d="M8 15h8"></path><path d="M12 9v6"></path></svg>
-            </div>
-            <h3 className="text-lg font-medium mb-2">Expert Instructors</h3>
-            <p className="text-muted-foreground">Learn directly from award-winning bartenders and mixologists from top bars.</p>
-          </div>
-        </div>
+          </TabsContent>
+        </Tabs>
       </div>
 
       <div className="mt-12 p-6 bg-gray-50 dark:bg-gray-900 rounded-lg">
         <h2 className="text-2xl font-semibold mb-4">Frequently Asked Questions</h2>
-        <div className="space-y-4">
-          <div>
-            <h3 className="text-lg font-medium">What equipment do I need?</h3>
-            <p className="text-muted-foreground">Basic bar tools like a shaker, strainer, and jigger are recommended but not required. We'll suggest alternatives if you don't have specific equipment.</p>
-          </div>
-          <div>
-            <h3 className="text-lg font-medium">When will I receive my ingredients?</h3>
-            <p className="text-muted-foreground">Ingredient kits are delivered 1-2 days before your scheduled class to ensure freshness.</p>
-          </div>
-          <div>
-            <h3 className="text-lg font-medium">Can I access the class recording afterward?</h3>
-            <p className="text-muted-foreground">Yes, all class recordings are available for 30 days after the live session for enrolled students.</p>
-          </div>
-          <div>
-            <h3 className="text-lg font-medium">What if I need to reschedule?</h3>
-            <p className="text-muted-foreground">You can reschedule up to 48 hours before the class starts. Please contact customer service for assistance.</p>
-          </div>
-        </div>
+        
+        <Tabs defaultValue={classType}>
+          <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-6">
+            <TabsTrigger value="virtual">Virtual Classes</TabsTrigger>
+            <TabsTrigger value="in-person">In-Person Classes</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="virtual" className="space-y-4">
+            <div>
+              <h3 className="text-lg font-medium">What equipment do I need?</h3>
+              <p className="text-muted-foreground">Basic bar tools like a shaker, strainer, and jigger are recommended but not required. We'll suggest alternatives if you don't have specific equipment.</p>
+            </div>
+            <div>
+              <h3 className="text-lg font-medium">When will I receive my ingredients?</h3>
+              <p className="text-muted-foreground">Ingredient kits are delivered 1-2 days before your scheduled class to ensure freshness.</p>
+            </div>
+            <div>
+              <h3 className="text-lg font-medium">Can I access the class recording afterward?</h3>
+              <p className="text-muted-foreground">Yes, all class recordings are available for 30 days after the live session for enrolled students.</p>
+            </div>
+            <div>
+              <h3 className="text-lg font-medium">What if I need to reschedule?</h3>
+              <p className="text-muted-foreground">You can reschedule a virtual class up to 48 hours before it starts. Please contact customer service for assistance.</p>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="in-person" className="space-y-4">
+            <div>
+              <h3 className="text-lg font-medium">What's included in the class fee?</h3>
+              <p className="text-muted-foreground">All ingredients, equipment usage, professional instruction, and tasting of several cocktails are included in the price. Food is available for purchase separately.</p>
+            </div>
+            <div>
+              <h3 className="text-lg font-medium">How early should I arrive?</h3>
+              <p className="text-muted-foreground">We recommend arriving 15 minutes before your scheduled class to check in and get settled at your station.</p>
+            </div>
+            <div>
+              <h3 className="text-lg font-medium">Are there age restrictions?</h3>
+              <p className="text-muted-foreground">In-person classes are restricted to participants 21 years and older. Valid ID will be required upon check-in.</p>
+            </div>
+            <div>
+              <h3 className="text-lg font-medium">What is the cancellation policy?</h3>
+              <p className="text-muted-foreground">In-person classes can be rescheduled or canceled with a full refund up to 72 hours before the class. Within 72 hours, we offer class credit for future booking.</p>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
