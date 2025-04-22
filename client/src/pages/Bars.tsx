@@ -6,6 +6,7 @@ import { Star, Clock, ChevronRight, MapPin } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Helmet } from "react-helmet";
+import { MapComponent } from "@/components/MapComponent";
 import type { Bar } from "@shared/schema";
 
 export default function Bars() {
@@ -34,34 +35,46 @@ export default function Bars() {
         
         <div className="bg-muted/50 rounded-lg p-6 mb-10">
           <h2 className="text-xl font-medium mb-4">Find Bars Near You</h2>
-          <div className="flex items-center gap-4 flex-wrap">
-            <div className="relative flex-grow max-w-md">
-              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
-              <input 
-                type="text" 
-                placeholder="Enter your location or zip code" 
-                className="w-full pl-10 pr-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30 text-foreground bg-background"
-                id="locationSearch"
-              />
+          <div className="flex flex-col md:flex-row gap-4 md:items-start">
+            <div className="flex items-center gap-4 flex-wrap flex-grow">
+              <div className="relative flex-grow max-w-md">
+                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+                <input 
+                  type="text" 
+                  placeholder="Enter your location or zip code" 
+                  className="w-full pl-10 pr-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30 text-foreground bg-background"
+                  id="locationSearch"
+                />
+              </div>
+              <Button 
+                className="shrink-0"
+                onClick={() => {
+                  const searchInput = document.getElementById('locationSearch') as HTMLInputElement;
+                  const searchTerm = searchInput?.value || '';
+                  if (searchTerm.trim()) {
+                    // For now, just filter the visible bars
+                    alert(`Search functionality would find bars near: ${searchTerm}`);
+                    // In a real implementation, we would call a geolocation API here
+                  }
+                }}
+              >
+                Search
+              </Button>
             </div>
-            <Button 
-              className="shrink-0"
-              onClick={() => {
-                const searchInput = document.getElementById('locationSearch') as HTMLInputElement;
-                const searchTerm = searchInput?.value || '';
-                if (searchTerm.trim()) {
-                  // For now, just filter the visible bars
-                  alert(`Search functionality would find bars near: ${searchTerm}`);
-                  // In a real implementation, we would call a geolocation API here
-                }
-              }}
-            >
-              Search
-            </Button>
+            
+            <div className="mt-2 md:mt-0 md:w-1/3">
+              {!isLoading && bars && (
+                <MapComponent bars={bars} />
+              )}
+            </div>
           </div>
-          <p className="text-xs text-muted-foreground mt-2">
-            Coming soon: Interactive map integration to find bars near your exact location!
-          </p>
+          
+          <div className="mt-4 flex gap-2 items-center text-sm text-muted-foreground">
+            <div className="flex-shrink-0 h-3 w-3 rounded-full bg-blue-500"></div>
+            <span>Your location</span>
+            <div className="ml-4 flex-shrink-0 h-3 w-3 rounded-full bg-primary"></div>
+            <span>Partner bars</span>
+          </div>
         </div>
         
         {error ? (
@@ -125,6 +138,11 @@ function BarCard({ bar }: { bar: Bar }) {
           )}
         </div>
         
+        <div className="flex items-center text-xs text-muted-foreground mb-3">
+          <MapPin className="mr-1 h-3 w-3 flex-shrink-0" />
+          <span className="truncate">{bar.location || "Location information not available"}</span>
+        </div>
+        
         <div className="mt-auto flex items-center justify-between">
           <div className="flex items-center text-sm text-muted-foreground">
             <Clock className="mr-1 h-4 w-4" />
@@ -159,6 +177,8 @@ function BarCardSkeleton() {
           <Skeleton className="h-6 w-20" />
           <Skeleton className="h-6 w-14" />
         </div>
+        
+        <Skeleton className="h-4 w-full mb-4" />
         
         <div className="mt-auto flex items-center justify-between">
           <Skeleton className="h-5 w-32" />
