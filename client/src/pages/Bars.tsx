@@ -49,12 +49,10 @@ export default function Bars() {
               <Button 
                 className="shrink-0"
                 onClick={() => {
-                  const searchInput = document.getElementById('locationSearch') as HTMLInputElement;
-                  const searchTerm = searchInput?.value || '';
-                  if (searchTerm.trim()) {
-                    // For now, just filter the visible bars
-                    alert(`Search functionality would find bars near: ${searchTerm}`);
-                    // In a real implementation, we would call a geolocation API here
+                  // Find the "Find Bars on Map" button in the same container and trigger its click
+                  const mapBtn = document.querySelector('button[class*="w-full flex items-center justify-center"]');
+                  if (mapBtn instanceof HTMLButtonElement) {
+                    mapBtn.click();
                   }
                 }}
               >
