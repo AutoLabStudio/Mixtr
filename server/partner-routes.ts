@@ -1,6 +1,7 @@
 import { Router, Request } from "express";
 import { storage } from "./storage";
 import { InsertPromotion, Partner } from "@shared/schema";
+import { requirePartner } from "./auth";
 
 // Extend Express Request type to include partner property
 declare global {
@@ -10,9 +11,6 @@ declare global {
     }
   }
 }
-
-// Import the requirePartner middleware after extending the Request type
-import { requirePartner } from "./auth";
 
 const partnerRouter = Router();
 

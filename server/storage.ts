@@ -803,7 +803,13 @@ export class MemStorage implements IStorage {
   async createUser(userData: InsertUser): Promise<User> {
     const id = this.userId++;
     const createdAt = new Date();
-    const user: User = { ...userData, id, createdAt };
+    // Ensure role is always defined
+    const user: User = { 
+      ...userData, 
+      id, 
+      createdAt,
+      role: userData.role || 'customer' 
+    };
     this.users.set(id, user);
     return user;
   }
@@ -833,7 +839,12 @@ export class MemStorage implements IStorage {
   // Partner operations
   async createPartner(partnerData: InsertPartner): Promise<Partner> {
     const id = this.partnerId++;
-    const partner: Partner = { ...partnerData, id };
+    // Ensure approved field is defined
+    const partner: Partner = { 
+      ...partnerData, 
+      id,
+      approved: partnerData.approved !== undefined ? partnerData.approved : false
+    };
     this.partners.set(id, partner);
     return partner;
   }
@@ -865,7 +876,17 @@ export class MemStorage implements IStorage {
     const id = this.promotionId++;
     const createdAt = new Date();
     const usageCount = 0;
-    const promotion: Promotion = { ...promotionData, id, createdAt, usageCount };
+    // Ensure all required fields are defined
+    const promotion: Promotion = { 
+      ...promotionData, 
+      id, 
+      createdAt, 
+      usageCount,
+      active: promotionData.active !== undefined ? promotionData.active : true,
+      discountPercentage: promotionData.discountPercentage || null,
+      discountAmount: promotionData.discountAmount || null,
+      usageLimit: promotionData.usageLimit || null
+    };
     this.promotions.set(id, promotion);
     return promotion;
   }
