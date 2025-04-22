@@ -14,9 +14,9 @@ export function Header() {
   const navLinks = [
     { name: "Featured", href: "/#featured" },
     { name: "Top Bars", href: "/#bars" },
-    { name: "Subscriptions", href: "/subscriptions" },
-    { name: "Mixology Classes", href: "/mixology-classes" },
-    { name: "Loyalty Program", href: "/loyalty-program" }
+    { name: "Subscriptions", href: "/subscriptions", highlight: true },
+    { name: "Mixology Classes", href: "/mixology-classes", highlight: true },
+    { name: "Loyalty Program", href: "/loyalty-program", highlight: true }
   ];
 
   return (
@@ -31,14 +31,21 @@ export function Header() {
             </Link>
           </div>
           
-          <nav className="hidden md:flex items-center space-x-8">
+          <nav className="hidden md:flex items-center space-x-6">
             {navLinks.map((link) => (
               <a
                 key={link.name}
                 href={link.href}
-                className="text-muted-foreground hover:text-primary transition-colors px-3 py-2 text-sm font-medium"
+                className={`transition-colors px-3 py-2 text-sm font-medium ${
+                  link.highlight 
+                    ? "text-primary hover:text-primary/80 relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary/30 after:rounded-full" 
+                    : "text-muted-foreground hover:text-primary"
+                }`}
               >
                 {link.name}
+                {link.highlight && (
+                  <span className="absolute -top-1 -right-1 h-2 w-2 bg-primary rounded-full"></span>
+                )}
               </a>
             ))}
           </nav>
@@ -78,10 +85,17 @@ export function Header() {
               <a
                 key={link.name}
                 href={link.href}
-                className="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-primary transition-colors"
+                className={`block px-3 py-2 text-base font-medium transition-colors relative ${
+                  link.highlight 
+                    ? "text-primary" 
+                    : "text-muted-foreground hover:text-primary"
+                }`}
                 onClick={() => setIsMenuOpen(false)}
               >
                 {link.name}
+                {link.highlight && (
+                  <span className="inline-block ml-2 h-2 w-2 bg-primary rounded-full"></span>
+                )}
               </a>
             ))}
           </div>

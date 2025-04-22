@@ -5,6 +5,7 @@ import { HowItWorks } from "@/components/HowItWorks";
 import { SpecialOffers } from "@/components/SpecialOffers";
 import { PackagingShowcase } from "@/components/PackagingShowcase";
 import { AppDownload } from "@/components/AppDownload";
+import { PremiumServices } from "@/components/PremiumServices";
 import { Helmet } from "react-helmet";
 
 export default function Home() {
@@ -22,6 +23,7 @@ export default function Home() {
       <FeaturedCocktails />
       <FeaturedBars />
       <HowItWorks />
+      <PremiumServices /> {/* Added our new premium services showcase */}
       <SpecialOffers />
       <PackagingShowcase />
       <AppDownload />
