@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { getQueryFn } from "@/lib/queryClient";
 import { MixologyClass } from "@shared/schema";
@@ -18,6 +19,7 @@ export default function MixologyClassesPage() {
   const [selectedClass, setSelectedClass] = useState<MixologyClass | null>(null);
   const [address, setAddress] = useState("");
   const [enrollmentDialogOpen, setEnrollmentDialogOpen] = useState(false);
+  const [classType, setClassType] = useState<"virtual" | "in-person">("virtual");
 
   const { data: classes, isLoading } = useQuery({
     queryKey: ['/api/mixology-classes/upcoming'],
@@ -33,25 +35,38 @@ export default function MixologyClassesPage() {
     if (!selectedClass || !address) return;
 
     try {
+      const enrollmentData = {
+        userId,
+        classId: selectedClass.id,
+        status: "confirmed",
+        // For virtual classes, this is the delivery address
+        // For in-person classes, this is contact information
+        deliveryAddress: address,
+        // Include the class type to differentiate between virtual and in-person
+        classType
+      };
+
       const response = await fetch('/api/mixology-classes/enroll', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId,
-          classId: selectedClass.id,
-          status: "confirmed",
-          deliveryAddress: address
-        })
+        body: JSON.stringify(enrollmentData)
       });
 
       if (!response.ok) {
         throw new Error('Failed to enroll in class');
       }
 
-      toast({
-        title: "Enrollment Successful!",
-        description: `You have been enrolled in ${selectedClass.title}. Your ingredients kit will be delivered to your address before the class.`,
-      });
+      if (classType === "virtual") {
+        toast({
+          title: "Enrollment Successful!",
+          description: `You have been enrolled in ${selectedClass.title}. Your ingredients kit will be delivered to your address before the class.`,
+        });
+      } else {
+        toast({
+          title: "Reservation Confirmed!",
+          description: `Your spot has been reserved for ${selectedClass.title} at ${selectedClass.bar?.name}. Please arrive 15 minutes early.`,
+        });
+      }
       
       setEnrollmentDialogOpen(false);
       refetchEnrollments();
@@ -97,11 +112,30 @@ export default function MixologyClassesPage() {
 
   return (
     <div className="container mx-auto py-8">
-      <h1 className="text-3xl font-bold mb-2">Virtual Mixology Classes</h1>
-      <p className="text-lg text-muted-foreground mb-8">
-        Learn the art of mixology from expert bartenders with live, interactive virtual classes.
-        We deliver all ingredients to your door before the class so you can follow along.
+      <h1 className="text-3xl font-bold mb-2">Mixology Classes</h1>
+      <p className="text-lg text-muted-foreground mb-4">
+        Learn the art of mixology from expert bartenders. Choose between virtual classes with 
+        home-delivered ingredient kits or in-person sessions at our partner bars.
       </p>
+      
+      <Tabs defaultValue="virtual" className="mb-8" onValueChange={(value) => setClassType(value as "virtual" | "in-person")}>
+        <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
+          <TabsTrigger value="virtual">Virtual Classes</TabsTrigger>
+          <TabsTrigger value="in-person">In-Person Classes</TabsTrigger>
+        </TabsList>
+        <TabsContent value="virtual" className="mt-4">
+          <div className="bg-primary/5 p-4 rounded-lg">
+            <h3 className="font-medium mb-2">Virtual Classes</h3>
+            <p>Interactive online classes with ingredient kits delivered to your home. Perfect for learning at your own pace.</p>
+          </div>
+        </TabsContent>
+        <TabsContent value="in-person" className="mt-4">
+          <div className="bg-primary/5 p-4 rounded-lg">
+            <h3 className="font-medium mb-2">In-Person Classes</h3>
+            <p>Hands-on classes at our partner bars with professional mixologists. Experience the atmosphere of a real cocktail bar.</p>
+          </div>
+        </TabsContent>
+      </Tabs>
 
       {userEnrollments && userEnrollments.length > 0 && (
         <div className="mb-10">
@@ -225,24 +259,53 @@ export default function MixologyClassesPage() {
                     <DialogHeader>
                       <DialogTitle>Enroll in {selectedClass?.title}</DialogTitle>
                       <DialogDescription>
-                        Complete your enrollment to receive the ingredients kit and access to the virtual class.
+                        {classType === "virtual"
+                          ? "Complete your enrollment to receive the ingredients kit and access to the virtual class."
+                          : "Complete your enrollment to reserve your spot at the bar for this in-person class."}
                       </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                       <div className="space-y-2">
-                        <Label htmlFor="deliveryAddress">Delivery Address</Label>
-                        <Textarea 
-                          id="deliveryAddress" 
-                          placeholder="Enter your full address for ingredients delivery" 
-                          value={address}
-                          onChange={(e) => setAddress(e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">
-                          Your ingredients kit will be delivered 1-2 days before the class date.
-                          You will receive an email with the class access link before the start time.
-                        </p>
+                        <Tabs defaultValue={classType} onValueChange={(value) => setClassType(value as "virtual" | "in-person")}>
+                          <TabsList className="grid w-full grid-cols-2">
+                            <TabsTrigger value="virtual">Virtual Class</TabsTrigger>
+                            <TabsTrigger value="in-person">In-Person Class</TabsTrigger>
+                          </TabsList>
+                          <TabsContent value="virtual" className="space-y-4 pt-4">
+                            <div className="space-y-2">
+                              <Label htmlFor="deliveryAddress">Delivery Address</Label>
+                              <Textarea 
+                                id="deliveryAddress" 
+                                placeholder="Enter your full address for ingredients delivery" 
+                                value={address}
+                                onChange={(e) => setAddress(e.target.value)}
+                              />
+                            </div>
+                            <div>
+                              <p className="text-sm text-muted-foreground">
+                                Your ingredients kit will be delivered 1-2 days before the class date.
+                                You will receive an email with the class access link before the start time.
+                              </p>
+                            </div>
+                          </TabsContent>
+                          <TabsContent value="in-person" className="space-y-4 pt-4">
+                            <div className="space-y-2">
+                              <Label htmlFor="contactInfo">Contact Information</Label>
+                              <Textarea 
+                                id="contactInfo" 
+                                placeholder="Enter your phone number and any special requests" 
+                                value={address}
+                                onChange={(e) => setAddress(e.target.value)}
+                              />
+                            </div>
+                            <div>
+                              <p className="text-sm text-muted-foreground">
+                                Please arrive 15 minutes before the class starts. The bartender will have
+                                all ingredients and equipment prepared for your session.
+                              </p>
+                            </div>
+                          </TabsContent>
+                        </Tabs>
                       </div>
                     </div>
                     <DialogFooter>

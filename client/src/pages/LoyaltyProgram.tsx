@@ -22,10 +22,13 @@ export default function LoyaltyProgramPage() {
   const { 
     data: program, 
     isLoading: programLoading,
+    error: programError,
     refetch: refetchProgram
   } = useQuery({
     queryKey: [`/api/user/${userId}/loyalty`],
     queryFn: getQueryFn({ on401: "returnNull" }),
+    retry: false, // Don't retry on 404 responses
+    refetchOnWindowFocus: false,
   });
 
   // Get rewards based on user's tier
@@ -154,12 +157,17 @@ export default function LoyaltyProgramPage() {
     }
   };
 
+  // Handle loading state
   if (programLoading) {
     return <div className="container mx-auto py-8">
       <h1 className="text-3xl font-bold mb-6">Mixtr Rewards</h1>
       <div className="h-48 w-full bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse"></div>
     </div>;
   }
+  
+  // If program data failed to load due to 404, treat it as if the user is not enrolled
+  // This handles the case where the API returns 404 "No loyalty program found"
+  const userIsEnrolled = !!program;
 
   return (
     <div className="container mx-auto py-8">
@@ -168,7 +176,7 @@ export default function LoyaltyProgramPage() {
         Earn points with every order and unlock exclusive benefits and rewards.
       </p>
 
-      {program ? (
+      {userIsEnrolled && program ? (
         <div className="space-y-10">
           {/* User's loyalty status */}
           <div className="bg-primary/5 p-6 rounded-lg">
