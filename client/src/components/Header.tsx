@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { ShoppingBag, Menu, X, User, LogIn, LogOut, Share2 } from "lucide-react";
@@ -45,7 +45,10 @@ export function Header() {
                     : "text-muted-foreground hover:text-primary"
                 }`}
               >
-                {link.name}
+                <span className="flex items-center gap-1">
+                  {link.icon && React.createElement(link.icon, { className: "h-3.5 w-3.5" })}
+                  {link.name}
+                </span>
                 {link.highlight && (
                   <span className="absolute -top-1 -right-1 h-2 w-2 bg-primary rounded-full"></span>
                 )}
@@ -134,10 +137,13 @@ export function Header() {
                 }`}
                 onClick={() => setIsMenuOpen(false)}
               >
-                {link.name}
-                {link.highlight && (
-                  <span className="inline-block ml-2 h-2 w-2 bg-primary rounded-full"></span>
-                )}
+                <span className="flex items-center gap-2">
+                  {link.icon && React.createElement(link.icon, { className: "h-4 w-4" })}
+                  {link.name}
+                  {link.highlight && (
+                    <span className="inline-block h-2 w-2 bg-primary rounded-full ml-1"></span>
+                  )}
+                </span>
               </a>
             ))}
             

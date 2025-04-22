@@ -1,6 +1,15 @@
-import { Snowflake, Droplet, Leaf } from "lucide-react";
+import { Snowflake, Droplet, Leaf, ImageOff } from "lucide-react";
+import { useState } from "react";
 
 export function PackagingShowcase() {
+  const [imageErrors, setImageErrors] = useState<boolean[]>([false, false, false, false]);
+  
+  const handleImageError = (index: number) => {
+    const newErrors = [...imageErrors];
+    newErrors[index] = true;
+    setImageErrors(newErrors);
+  };
+  
   const features = [
     {
       icon: <Snowflake className="text-xl text-primary" />,
@@ -20,10 +29,10 @@ export function PackagingShowcase() {
   ];
 
   const images = [
-    "https://images.unsplash.com/photo-1578305035108-1ef3bb6ebe75?ixlib=rb-4.0.3",
-    "https://images.unsplash.com/photo-1609951651790-c8cbf9c69350?ixlib=rb-4.0.3",
-    "https://images.unsplash.com/photo-1583225214464-9296029427aa?ixlib=rb-4.0.3",
-    "https://images.unsplash.com/photo-1563223771-375783ee91ad?ixlib=rb-4.0.3"
+    "https://images.unsplash.com/photo-1578305035108-1ef3bb6ebe75?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+    "https://images.unsplash.com/photo-1609951651790-c8cbf9c69350?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+    "https://images.unsplash.com/photo-1583225214464-9296029427aa?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+    "https://images.unsplash.com/photo-1563223771-375783ee91ad?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"
   ];
 
   return (
@@ -57,12 +66,22 @@ export function PackagingShowcase() {
           
           <div className="order-1 lg:order-2 grid grid-cols-2 gap-4">
             {images.map((image, index) => (
-              <img 
-                key={index}
-                src={image} 
-                alt={`Packaging Image ${index + 1}`}
-                className="rounded-lg shadow-lg h-64 w-full object-cover" 
-              />
+              <div key={index} className="relative rounded-lg shadow-lg h-64 w-full overflow-hidden">
+                {imageErrors[index] ? (
+                  <div className="h-full w-full bg-muted flex flex-col items-center justify-center text-muted-foreground">
+                    <ImageOff className="h-8 w-8 mb-2" />
+                    <p className="text-sm">Premium Packaging</p>
+                  </div>
+                ) : (
+                  <img 
+                    src={image} 
+                    alt={`Packaging Image ${index + 1}`}
+                    className="h-full w-full object-cover"
+                    onError={() => handleImageError(index)}
+                    loading="lazy"
+                  />
+                )}
+              </div>
             ))}
           </div>
         </div>
