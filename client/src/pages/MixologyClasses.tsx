@@ -46,6 +46,34 @@ export default function MixologyClassesPage() {
         classType
       };
 
+      // First check if the user is enrolled in the loyalty program
+      const loyaltyResponse = await fetch(`/api/user/${userId}/loyalty`);
+      let isLoyaltyMember = loyaltyResponse.ok;
+      
+      // If not a loyalty member, enroll them when they sign up for in-person class
+      if (!isLoyaltyMember && classType === "in-person") {
+        try {
+          const loyaltyEnrollResponse = await fetch('/api/loyalty/enroll', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userId,
+              tier: 'bronze',
+              points: 100, // Welcome points
+              enrollmentDate: new Date().toISOString(),
+              lastActivity: new Date().toISOString()
+            })
+          });
+          
+          if (loyaltyEnrollResponse.ok) {
+            isLoyaltyMember = true;
+          }
+        } catch (loyaltyError) {
+          console.error("Failed to enroll in loyalty program:", loyaltyError);
+        }
+      }
+
+      // Enroll in the class
       const response = await fetch('/api/mixology-classes/enroll', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -56,15 +84,37 @@ export default function MixologyClassesPage() {
         throw new Error('Failed to enroll in class');
       }
 
+      // Award loyalty points for in-person class enrollment
+      if (isLoyaltyMember && classType === "in-person") {
+        try {
+          // Add 50 points for enrolling in an in-person class
+          await fetch(`/api/user/${userId}/loyalty/points`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ points: 50 })
+          });
+        } catch (pointsError) {
+          console.error("Failed to award loyalty points:", pointsError);
+        }
+      }
+
       if (classType === "virtual") {
         toast({
           title: "Enrollment Successful!",
           description: `You have been enrolled in ${selectedClass.title}. Your ingredients kit will be delivered to your address before the class.`,
         });
       } else {
+        let message = `Your spot has been reserved for ${selectedClass.title} at ${selectedClass.bar?.name}. Please arrive 15 minutes early.`;
+        
+        if (isLoyaltyMember) {
+          message += " You've earned 50 loyalty points for this booking!";
+        } else {
+          message += " You've been enrolled in our loyalty program with 100 welcome points!";
+        }
+        
         toast({
           title: "Reservation Confirmed!",
-          description: `Your spot has been reserved for ${selectedClass.title} at ${selectedClass.bar?.name}. Please arrive 15 minutes early.`,
+          description: message,
         });
       }
       

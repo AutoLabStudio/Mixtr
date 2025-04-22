@@ -65,8 +65,12 @@ export default function LoyaltyProgramPage() {
   // Mutation for enrolling in loyalty program
   const enrollMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('/api/loyalty/enroll', {
+      // Use fetch directly to avoid TypeScript issues with apiRequest
+      const response = await fetch('/api/loyalty/enroll', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({
           userId,
           tier: 'bronze',
@@ -75,7 +79,12 @@ export default function LoyaltyProgramPage() {
           lastActivity: new Date().toISOString()
         })
       });
-      return response;
+      
+      if (!response.ok) {
+        throw new Error('Failed to enroll in loyalty program');
+      }
+      
+      return await response.json();
     },
     onSuccess: () => {
       toast({
@@ -99,23 +108,33 @@ export default function LoyaltyProgramPage() {
   // Mutation for redeeming rewards
   const redeemMutation = useMutation({
     mutationFn: async (rewardId: number) => {
-      const response = await apiRequest(`/api/user/${userId}/loyalty/redeem`, {
+      const response = await fetch(`/api/user/${userId}/loyalty/redeem`, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({ rewardId })
       });
-      return response;
+      
+      if (!response.ok) {
+        throw new Error('Failed to redeem reward');
+      }
+      
+      return await response.json();
     },
     onSuccess: (data) => {
       toast({
         title: "Reward Redeemed!",
         description: `You've successfully redeemed ${selectedReward?.name}. Your points have been updated.`,
       });
+      
       // Update the local cache with the new points balance
       if (data && data.program) {
         queryClient.setQueryData([`/api/user/${userId}/loyalty`], data.program);
       } else {
         refetchProgram();
       }
+      
       setRedeemDialogOpen(false);
     },
     onError: () => {
@@ -218,13 +237,42 @@ export default function LoyaltyProgramPage() {
             Sign up for Mixtr Rewards to earn points with every purchase, unlock exclusive benefits, 
             and redeem exciting rewards. It's free to join!
           </p>
-          <Button 
-            size="lg" 
-            onClick={handleEnroll}
-            disabled={isEnrolling}
-          >
-            {isEnrolling ? "Enrolling..." : "Join Now"}
-          </Button>
+          <div className="flex flex-col items-center">
+            <Button 
+              size="lg" 
+              onClick={handleEnroll}
+              disabled={isEnrolling}
+              className="px-8 py-6 text-lg"
+            >
+              {isEnrolling ? "Enrolling..." : "Join Now and Get 100 Points!"}
+            </Button>
+            <p className="mt-4 text-sm text-muted-foreground">
+              Get started with 100 bonus points immediately after joining!
+            </p>
+            <div className="mt-6 grid grid-cols-3 gap-6 max-w-2xl">
+              <div className="text-center">
+                <div className="w-12 h-12 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M20 6 9 17l-5-5"></path></svg>
+                </div>
+                <h3 className="text-base font-medium mb-1">Free to Join</h3>
+                <p className="text-sm text-muted-foreground">No cost to become a member</p>
+              </div>
+              <div className="text-center">
+                <div className="w-12 h-12 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M12 8c-2.8 0-5 2.2-5 5s2.2 5 5 5 5-2.2 5-5-2.2-5-5-5z"></path><path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"></path></svg>
+                </div>
+                <h3 className="text-base font-medium mb-1">Earn Points Fast</h3>
+                <p className="text-sm text-muted-foreground">Get rewards with every purchase</p>
+              </div>
+              <div className="text-center">
+                <div className="w-12 h-12 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg>
+                </div>
+                <h3 className="text-base font-medium mb-1">Exclusive Perks</h3>
+                <p className="text-sm text-muted-foreground">Special offers just for members</p>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
