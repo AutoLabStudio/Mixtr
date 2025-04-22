@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Star, Clock, ChevronRight, Search, Wine as CocktailIcon } from "lucide-react";
+import { Star, Clock, ChevronRight, Search, GlassWater as CocktailIcon } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { formatCurrency } from "@/lib/utils";
 import type { Cocktail } from "@shared/schema";
@@ -156,7 +156,18 @@ export default function Cocktails() {
 }
 
 function CocktailCard({ cocktail, onAddToCart }: { cocktail: Cocktail, onAddToCart: () => void }) {
-  const { data: barData } = useQuery({
+  const { data: barData } = useQuery<{
+    id: number;
+    name: string;
+    description: string;
+    location: string;
+    deliveryTime: string;
+    tags: string[];
+    imageUrl: string;
+    rating: number;
+    latitude?: number;
+    longitude?: number;
+  }>({
     queryKey: [`/api/bars/${cocktail.barId}`],
     enabled: !!cocktail.barId,
   });

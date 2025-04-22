@@ -58,8 +58,14 @@ export function FeaturedCocktails() {
         </div>
 
         <div className="text-center mt-10">
-          <Button variant="outline" className="border-primary text-primary hover:bg-primary/10">
-            View All Cocktails <ChevronRight className="ml-2 h-4 w-4" />
+          <Button 
+            variant="outline" 
+            className="border-primary text-primary hover:bg-primary/10"
+            asChild
+          >
+            <Link href="/cocktails">
+              View All Cocktails <ChevronRight className="ml-2 h-4 w-4" />
+            </Link>
           </Button>
         </div>
       </div>
