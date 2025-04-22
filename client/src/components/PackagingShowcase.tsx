@@ -29,10 +29,10 @@ export function PackagingShowcase() {
   ];
 
   const images = [
-    "https://images.unsplash.com/photo-1578305035108-1ef3bb6ebe75?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    "https://images.unsplash.com/photo-1609951651790-c8cbf9c69350?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    "https://images.unsplash.com/photo-1583225214464-9296029427aa?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    "https://images.unsplash.com/photo-1563223771-375783ee91ad?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"
+    "https://images.pexels.com/photos/5947019/pexels-photo-5947019.jpeg?auto=compress&cs=tinysrgb&w=600",
+    "https://images.pexels.com/photos/4021983/pexels-photo-4021983.jpeg?auto=compress&cs=tinysrgb&w=600",
+    "https://images.pexels.com/photos/5336951/pexels-photo-5336951.jpeg?auto=compress&cs=tinysrgb&w=600",
+    "https://images.pexels.com/photos/4021939/pexels-photo-4021939.jpeg?auto=compress&cs=tinysrgb&w=600"
   ];
 
   return (

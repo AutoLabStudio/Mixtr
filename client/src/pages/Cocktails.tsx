@@ -22,10 +22,16 @@ import type { Cocktail } from "@shared/schema";
 export default function Cocktails() {
   const [filter, setFilter] = useState("");
   const [sort, setSort] = useState("popular");
+  const [barFilter, setBarFilter] = useState("");
   const { addToCart } = useCart();
   
   const { data: cocktails, isLoading, error } = useQuery<Cocktail[]>({
     queryKey: ['/api/cocktails'],
+  });
+  
+  // Fetch bars for filter dropdown
+  const { data: bars } = useQuery({
+    queryKey: ['/api/bars'],
   });
 
   // Filter and sort cocktails

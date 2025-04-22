@@ -5,7 +5,8 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Star, Clock, Plus, Minus } from "lucide-react";
+import { Star, Clock, Plus, Minus } from "lucide-react";
+import { BackButton } from "@/components/BackButton";
 import { useState } from "react";
 import { useCart } from "@/context/CartContext";
 import { formatCurrency } from "@/lib/utils";
@@ -58,11 +59,7 @@ export default function Cocktail() {
       <div className="pt-20 pb-16 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-6">
-            <Button variant="ghost" asChild className="pl-0">
-              <Link href="/">
-                <ArrowLeft className="mr-2 h-4 w-4" /> Back to Cocktails
-              </Link>
-            </Button>
+            <BackButton fallbackPath="/cocktails" />
           </div>
           
           {isLoading ? (
