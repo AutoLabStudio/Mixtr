@@ -1,5 +1,5 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,114 +7,139 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { getQueryFn, queryClient } from "@/lib/queryClient";
-import { LoyaltyProgram, LoyaltyReward } from "@shared/schema";
+import { getQueryFn, queryClient, apiRequest } from "@/lib/queryClient";
 import { generateUserId } from "@/lib/utils";
+
+// Define types for our data
+interface LoyaltyProgram {
+  userId: string;
+  tier: string;
+  points: number;
+  enrollmentDate: string;
+  lastActivity: string;
+  id?: number;
+}
+
+interface LoyaltyReward {
+  id: number;
+  name: string;
+  description: string;
+  imageUrl: string;
+  pointsCost: number;
+  tier: string;
+  type: string;
+  active: boolean;
+}
 
 export default function LoyaltyProgramPage() {
   const { toast } = useToast();
-  const userId = generateUserId();
-  const [enrolling, setEnrolling] = useState(false);
+  // Create a consistent user ID for this session
+  const [userId] = useState(() => generateUserId());
+  const [isEnrolling, setIsEnrolling] = useState(false);
   const [selectedReward, setSelectedReward] = useState<LoyaltyReward | null>(null);
   const [redeemDialogOpen, setRedeemDialogOpen] = useState(false);
 
-  // Get user's loyalty program if any
+  // Fetch user's loyalty program
   const { 
-    data: program, 
+    data: program,
     isLoading: programLoading,
     error: programError,
     refetch: refetchProgram
   } = useQuery({
     queryKey: [`/api/user/${userId}/loyalty`],
     queryFn: getQueryFn({ on401: "returnNull" }),
-    retry: false, // Don't retry on 404 responses
+    retry: false,
     refetchOnWindowFocus: false,
   });
 
-  // Get rewards based on user's tier
-  const { 
+  // Fetch rewards once we have the program
+  const {
     data: rewards,
-    isLoading: rewardsLoading 
+    isLoading: rewardsLoading,
   } = useQuery({
     queryKey: [`/api/loyalty/rewards/tier/${program?.tier || 'bronze'}`],
     queryFn: getQueryFn({ on401: "returnNull" }),
-    enabled: !!program
+    enabled: !!program,
   });
 
-  // Enroll in loyalty program
+  // Mutation for enrolling in loyalty program
   const enrollMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch('/api/loyalty/enroll', {
+      const response = await apiRequest('/api/loyalty/enroll', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          userId, 
+        body: JSON.stringify({
+          userId,
           tier: 'bronze',
-          points: 100, // Start with welcome points
+          points: 100,
           enrollmentDate: new Date().toISOString(),
           lastActivity: new Date().toISOString()
         })
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to enroll in loyalty program');
-      }
-
-      return response.json();
+      return response;
     },
     onSuccess: () => {
       toast({
         title: "Welcome to Mixtr Rewards!",
-        description: "You have successfully enrolled in our loyalty program.",
+        description: "You've been enrolled in our loyalty program with 100 welcome points!",
       });
+      setIsEnrolling(false);
       refetchProgram();
-      setEnrolling(false);
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Enrollment failed:", error);
       toast({
-        title: "Error",
-        description: "Failed to enroll in loyalty program. Please try again.",
+        title: "Enrollment Failed",
+        description: "We couldn't enroll you in the loyalty program. Please try again.",
         variant: "destructive",
       });
-      setEnrolling(false);
+      setIsEnrolling(false);
     }
   });
 
-  // Redeem a reward
+  // Mutation for redeeming rewards
   const redeemMutation = useMutation({
     mutationFn: async (rewardId: number) => {
-      const response = await fetch(`/api/user/${userId}/loyalty/redeem`, {
+      const response = await apiRequest(`/api/user/${userId}/loyalty/redeem`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ rewardId })
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to redeem reward');
-      }
-
-      return response.json();
+      return response;
     },
     onSuccess: (data) => {
       toast({
         title: "Reward Redeemed!",
-        description: `You have successfully redeemed ${selectedReward?.name}. Your points have been updated.`,
+        description: `You've successfully redeemed ${selectedReward?.name}. Your points have been updated.`,
       });
-      queryClient.setQueryData([`/api/user/${userId}/loyalty`], data.program);
+      // Update the local cache with the new points balance
+      if (data && data.program) {
+        queryClient.setQueryData([`/api/user/${userId}/loyalty`], data.program);
+      } else {
+        refetchProgram();
+      }
       setRedeemDialogOpen(false);
     },
     onError: () => {
       toast({
-        title: "Error",
-        description: "Failed to redeem reward. Please try again.",
+        title: "Redemption Failed",
+        description: "We couldn't redeem your reward. Please try again.",
         variant: "destructive",
       });
     }
   });
 
-  // Handle enrollment
+  // Auto-enroll on page load if user doesn't have a loyalty program
+  useEffect(() => {
+    // If program data is loaded and no program found (error), and not already enrolling
+    if (programError && !program && !isEnrolling) {
+      console.log("Auto-enrolling user in loyalty program");
+      setIsEnrolling(true);
+      enrollMutation.mutate();
+    }
+  }, [program, programError, isEnrolling]);
+
+  // Handle manual enrollment
   const handleEnroll = () => {
-    setEnrolling(true);
+    setIsEnrolling(true);
     enrollMutation.mutate();
   };
 
@@ -125,31 +150,31 @@ export default function LoyaltyProgramPage() {
     }
   };
 
-  // Get next tier info
+  // Calculate next tier progress
   const getNextTierInfo = (currentTier: string, points: number) => {
     if (currentTier === 'bronze') {
-      return { 
-        nextTier: 'silver', 
-        pointsNeeded: 300, 
-        progress: Math.min(points / 300 * 100, 100)
+      return {
+        nextTier: 'silver',
+        pointsNeeded: 300,
+        progress: Math.min((points / 300) * 100, 100)
       };
     } else if (currentTier === 'silver') {
-      return { 
-        nextTier: 'gold', 
-        pointsNeeded: 750, 
-        progress: Math.min(points / 750 * 100, 100)
+      return {
+        nextTier: 'gold',
+        pointsNeeded: 750,
+        progress: Math.min((points / 750) * 100, 100)
       };
     } else if (currentTier === 'gold') {
-      return { 
-        nextTier: 'platinum', 
-        pointsNeeded: 1500, 
-        progress: Math.min(points / 1500 * 100, 100)
+      return {
+        nextTier: 'platinum',
+        pointsNeeded: 1500,
+        progress: Math.min((points / 1500) * 100, 100)
       };
     }
     return { nextTier: null, pointsNeeded: 0, progress: 100 };
   };
 
-  // Helper function to get tier badge color
+  // Get badge variant based on tier
   const getTierBadgeVariant = (tier: string) => {
     switch (tier) {
       case 'bronze': return 'outline';
@@ -160,31 +185,22 @@ export default function LoyaltyProgramPage() {
     }
   };
 
-  // Auto-enroll user if needed
-  React.useEffect(() => {
-    // If we tried to load the program and got an error (likely 404), offer to enroll
-    if (programError && !program && !enrolling) {
-      // Automatically trigger enrollment
-      setEnrolling(true);
-      enrollMutation.mutate();
-    }
-  }, [programError, program, enrolling]);
-
-  // Handle loading states
+  // Loading state
   if (programLoading || enrollMutation.isPending) {
-    return <div className="container mx-auto py-8">
-      <h1 className="text-3xl font-bold mb-6">Mixtr Rewards</h1>
-      <div className="h-48 w-full bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse"></div>
-      {enrollMutation.isPending && (
-        <div className="mt-4 text-center">
-          <p>Enrolling you in Mixtr Rewards...</p>
-        </div>
-      )}
-    </div>;
+    return (
+      <div className="container mx-auto py-8">
+        <h1 className="text-3xl font-bold mb-6">Mixtr Rewards</h1>
+        <div className="h-48 w-full bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse"></div>
+        {enrollMutation.isPending && (
+          <div className="mt-4 text-center">
+            <p>Enrolling you in Mixtr Rewards...</p>
+          </div>
+        )}
+      </div>
+    );
   }
-  
-  // If program data failed to load due to 404, treat it as if the user is not enrolled
-  // This handles the case where the API returns 404 "No loyalty program found"
+
+  // Determine if user is enrolled based on program presence
   const userIsEnrolled = !!program;
 
   return (
@@ -194,7 +210,26 @@ export default function LoyaltyProgramPage() {
         Earn points with every order and unlock exclusive benefits and rewards.
       </p>
 
-      {userIsEnrolled && program ? (
+      {/* If user is not enrolled, show enrollment card */}
+      {!userIsEnrolled && (
+        <div className="bg-primary/5 p-8 rounded-lg text-center">
+          <h2 className="text-2xl font-semibold mb-4">Join Our Loyalty Program</h2>
+          <p className="mb-6">
+            Sign up for Mixtr Rewards to earn points with every purchase, unlock exclusive benefits, 
+            and redeem exciting rewards. It's free to join!
+          </p>
+          <Button 
+            size="lg" 
+            onClick={handleEnroll}
+            disabled={isEnrolling}
+          >
+            {isEnrolling ? "Enrolling..." : "Join Now"}
+          </Button>
+        </div>
+      )}
+
+      {/* If user is enrolled, show loyalty program details */}
+      {userIsEnrolled && program && (
         <div className="space-y-10">
           {/* User's loyalty status */}
           <div className="bg-primary/5 p-6 rounded-lg">
@@ -220,11 +255,17 @@ export default function LoyaltyProgramPage() {
               <div className="mt-6">
                 <div className="flex justify-between text-sm mb-1">
                   <span>Current: {program.tier}</span>
-                  <span>Next: {getNextTierInfo(program.tier, program.points).nextTier}</span>
+                  <span>
+                    Next: {getNextTierInfo(program.tier, program.points).nextTier}
+                  </span>
                 </div>
-                <Progress value={getNextTierInfo(program.tier, program.points).progress} className="h-2" />
+                <Progress 
+                  value={getNextTierInfo(program.tier, program.points).progress} 
+                  className="h-2"
+                />
                 <div className="mt-2 text-sm text-muted-foreground">
-                  {getNextTierInfo(program.tier, program.points).pointsNeeded - program.points} more points needed to reach {getNextTierInfo(program.tier, program.points).nextTier}
+                  {getNextTierInfo(program.tier, program.points).pointsNeeded - program.points} more 
+                  points needed to reach {getNextTierInfo(program.tier, program.points).nextTier}
                 </div>
               </div>
             )}
@@ -278,7 +319,9 @@ export default function LoyaltyProgramPage() {
                     </CardHeader>
                     <CardContent className="flex-grow">
                       <div className="text-sm">
-                        <div><span className="font-medium">Type:</span> {reward.type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</div>
+                        <div>
+                          <span className="font-medium">Type:</span> {reward.type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                        </div>
                       </div>
                     </CardContent>
                     <CardFooter>
@@ -289,14 +332,18 @@ export default function LoyaltyProgramPage() {
                             disabled={program.points < reward.pointsCost}
                             onClick={() => setSelectedReward(reward)}
                           >
-                            {program.points < reward.pointsCost ? `Need ${reward.pointsCost - program.points} More Points` : "Redeem"}
+                            {program.points < reward.pointsCost 
+                              ? `Need ${reward.pointsCost - program.points} More Points` 
+                              : "Redeem"
+                            }
                           </Button>
                         </DialogTrigger>
                         <DialogContent>
                           <DialogHeader>
                             <DialogTitle>Redeem {selectedReward?.name}</DialogTitle>
                             <DialogDescription>
-                              You are about to redeem this reward for {selectedReward?.pointsCost} points. This action cannot be undone.
+                              You are about to redeem this reward for {selectedReward?.pointsCost} points. 
+                              This action cannot be undone.
                             </DialogDescription>
                           </DialogHeader>
                           <div className="py-4">
@@ -332,7 +379,7 @@ export default function LoyaltyProgramPage() {
           {/* Tier benefits */}
           <div>
             <h2 className="text-2xl font-semibold mb-4">Tier Benefits</h2>
-            <Tabs defaultValue="bronze">
+            <Tabs defaultValue={program.tier}>
               <TabsList className="grid grid-cols-4 w-full">
                 <TabsTrigger value="bronze">Bronze</TabsTrigger>
                 <TabsTrigger value="silver">Silver</TabsTrigger>
@@ -393,56 +440,18 @@ export default function LoyaltyProgramPage() {
               </div>
               <div className="flex flex-col items-center text-center">
                 <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M17.5 21h-12c-1.7 0-3-1.3-3-3v-8.3c0-1.1.6-2.1 1.5-2.6l6-3.3c1.2-.7 2.7-.7 3.9 0l6 3.3c.9.5 1.5 1.5 1.5 2.6V18c.1 1.7-1.2 3-2.9 3z"></path><path d="M12 21v-2"></path><path d="M12 13v2"></path><path d="M12 3v2"></path><path d="M3 13h18"></path></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                 </div>
-                <h3 className="text-lg font-medium mb-1">Subscribe</h3>
-                <p className="text-muted-foreground">Get 100 bonus points when you sign up for a cocktail subscription.</p>
+                <h3 className="text-lg font-medium mb-1">Refer Friends</h3>
+                <p className="text-muted-foreground">Earn 200 points for each friend who signs up and makes their first purchase.</p>
               </div>
               <div className="flex flex-col items-center text-center">
                 <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M12 20.94c1.5 0 2.75 1.06 4 1.06 3 0 6-8 6-12.22A4.91 4.91 0 0 0 17 5c-2.22 0-4 1.44-5 2-1-.56-2.78-2-5-2a4.9 4.9 0 0 0-5 4.78C2 14 5 22 8 22c1.25 0 2.5-1.06 4-1.06Z"></path><path d="M10 2c1 .5 2 2 2 5"></path></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z"></path><path d="M8 9h8"></path><path d="M8 15h8"></path><path d="M12 9v6"></path></svg>
                 </div>
-                <h3 className="text-lg font-medium mb-1">Referrals</h3>
-                <p className="text-muted-foreground">Earn 250 points for each friend who signs up and makes their first purchase.</p>
+                <h3 className="text-lg font-medium mb-1">Complete Activities</h3>
+                <p className="text-muted-foreground">Earn bonus points by attending mixology classes, subscribing to monthly boxes, and more.</p>
               </div>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div className="bg-gray-50 dark:bg-gray-900 p-8 rounded-lg text-center">
-          <h2 className="text-2xl font-bold mb-4">Join Mixtr Rewards</h2>
-          <p className="text-lg max-w-2xl mx-auto mb-6">
-            Become a member to start earning points with every purchase. Redeem your points for exclusive rewards, free cocktails, and unique experiences.
-          </p>
-          <Button 
-            size="lg" 
-            onClick={handleEnroll}
-            disabled={enrolling}
-          >
-            {enrolling ? "Enrolling..." : "Enroll Now"}
-          </Button>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12 max-w-4xl mx-auto">
-            <div className="text-center">
-              <div className="w-12 h-12 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-3">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg>
-              </div>
-              <h3 className="text-lg font-medium mb-1">Earn Points</h3>
-              <p className="text-muted-foreground">Collect points on every purchase you make.</p>
-            </div>
-            <div className="text-center">
-              <div className="w-12 h-12 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-3">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>
-              </div>
-              <h3 className="text-lg font-medium mb-1">Unlock Tiers</h3>
-              <p className="text-muted-foreground">Rise through the ranks from Bronze to Platinum.</p>
-            </div>
-            <div className="text-center">
-              <div className="w-12 h-12 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-3">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M19.8 4a2.2 2.2 0 0 0-2.2 2.2v11.1a3 3 0 0 1-.9 2.15"></path><path d="M17.6 19.55a3 3 0 0 1-2.15.9H6a2 2 0 0 1-2-2v-15a.9.9 0 0 1 .9-.9H9"></path><path d="M7 16h8"></path><path d="M7 12h10"></path><path d="M9 8h6"></path></svg>
-              </div>
-              <h3 className="text-lg font-medium mb-1">Redeem Rewards</h3>
-              <p className="text-muted-foreground">Exchange points for exclusive benefits and experiences.</p>
             </div>
           </div>
         </div>
