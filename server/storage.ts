@@ -7,7 +7,10 @@ import {
   MixologyClass, InsertMixologyClass,
   ClassEnrollment, InsertClassEnrollment,
   LoyaltyProgram, InsertLoyaltyProgram,
-  LoyaltyReward, InsertLoyaltyReward
+  LoyaltyReward, InsertLoyaltyReward,
+  User, InsertUser,
+  Partner, InsertPartner,
+  Promotion, InsertPromotion
 } from "@shared/schema";
 
 export interface IStorage {
@@ -25,6 +28,7 @@ export interface IStorage {
   createOrder(order: InsertOrder): Promise<Order>;
   getOrder(id: number): Promise<Order | undefined>;
   getOrdersByUser(userId: string): Promise<Order[]>;
+  getOrders(): Promise<Order[]>;
   updateOrderStatus(id: number, status: string): Promise<Order | undefined>;
   
   // Special offers
@@ -59,6 +63,29 @@ export interface IStorage {
   getLoyaltyReward(id: number): Promise<LoyaltyReward | undefined>;
   getLoyaltyRewardsByTier(tier: string): Promise<LoyaltyReward[]>;
   redeemReward(userId: string, rewardId: number): Promise<boolean>;
+  
+  // User operations
+  createUser(user: InsertUser): Promise<User>;
+  getUser(id: number): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  updateUser(id: number, data: Partial<InsertUser>): Promise<User | undefined>;
+  
+  // Partner operations
+  createPartner(partner: InsertPartner): Promise<Partner>;
+  getPartner(id: number): Promise<Partner | undefined>;
+  getPartnerByUserId(userId: number): Promise<Partner | undefined>;
+  getPartnerByBarId(barId: number): Promise<Partner | undefined>;
+  updatePartner(id: number, data: Partial<InsertPartner>): Promise<Partner | undefined>;
+  
+  // Promotion operations
+  createPromotion(promotion: InsertPromotion): Promise<Promotion>;
+  getPromotion(id: number): Promise<Promotion | undefined>;
+  getPromotions(): Promise<Promotion[]>;
+  getPromotionsByBar(barId: number): Promise<Promotion[]>;
+  getActivePromotions(): Promise<Promotion[]>;
+  updatePromotion(id: number, data: Partial<InsertPromotion>): Promise<Promotion | undefined>;
+  deletePromotion(id: number): Promise<boolean>;
 }
 
 // Mock data for bars
@@ -357,6 +384,90 @@ const mockLoyaltyRewards: LoyaltyReward[] = [
   }
 ];
 
+// Mock data for users
+const mockUsers: User[] = [
+  {
+    id: 1,
+    username: "customer1",
+    password: "$2b$10$X9pQCFUbU9UdMpRE4a8C9uhuOKDc/AUOLrBK15k7Dsq.qVV5OzLl2", // "password123"
+    email: "customer1@example.com",
+    role: "customer",
+    createdAt: new Date(Date.now() - 120 * 24 * 60 * 60 * 1000)
+  },
+  {
+    id: 2,
+    username: "partner1",
+    password: "$2b$10$X9pQCFUbU9UdMpRE4a8C9uhuOKDc/AUOLrBK15k7Dsq.qVV5OzLl2", // "password123"
+    email: "partner1@nightcap.com",
+    role: "partner",
+    createdAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)
+  },
+  {
+    id: 3,
+    username: "partner2",
+    password: "$2b$10$X9pQCFUbU9UdMpRE4a8C9uhuOKDc/AUOLrBK15k7Dsq.qVV5OzLl2", // "password123"
+    email: "partner2@copperandbrew.com",
+    role: "partner",
+    createdAt: new Date(Date.now() - 85 * 24 * 60 * 60 * 1000)
+  }
+];
+
+// Mock data for partners
+const mockPartners: Partner[] = [
+  {
+    id: 1,
+    userId: 2,
+    barId: 1, // The Nightcap Lounge
+    position: "Bar Manager",
+    phone: "555-123-4567",
+    approved: true
+  },
+  {
+    id: 2,
+    userId: 3,
+    barId: 2, // Copper & Brew
+    position: "Owner",
+    phone: "555-987-6543",
+    approved: true
+  }
+];
+
+// Mock data for promotions
+const mockPromotions: Promotion[] = [
+  {
+    id: 1,
+    barId: 1,
+    title: "Happy Hour Specials",
+    description: "Get 20% off all classic cocktails between 5-7pm. Limited time offer!",
+    imageUrl: "https://images.pexels.com/photos/5947019/pexels-photo-5947019.jpeg?auto=compress&cs=tinysrgb&w=600",
+    startDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+    endDate: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000),
+    discountPercentage: 20,
+    discountAmount: null,
+    promoCode: "HAPPY20",
+    usageLimit: 100,
+    usageCount: 42,
+    active: true,
+    createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000)
+  },
+  {
+    id: 2,
+    barId: 2,
+    title: "Coffee Cocktail Special",
+    description: "Try our signature coffee-infused cocktails with $5 off your first order",
+    imageUrl: "https://images.pexels.com/photos/2480828/pexels-photo-2480828.jpeg?auto=compress&cs=tinysrgb&w=600",
+    startDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+    endDate: new Date(Date.now() + 25 * 24 * 60 * 60 * 1000),
+    discountPercentage: null,
+    discountAmount: 5,
+    promoCode: "COFFEE5",
+    usageLimit: 50,
+    usageCount: 12,
+    active: true,
+    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+  }
+];
+
 export class MemStorage implements IStorage {
   private bars: Map<number, Bar>;
   private cocktails: Map<number, Cocktail>;
@@ -367,12 +478,18 @@ export class MemStorage implements IStorage {
   private classEnrollments: Map<number, ClassEnrollment>;
   private loyaltyPrograms: Map<string, LoyaltyProgram>;
   private loyaltyRewards: Map<number, LoyaltyReward>;
+  private users: Map<number, User>;
+  private partners: Map<number, Partner>;
+  private promotions: Map<number, Promotion>;
   
   private orderId: number;
   private subscriptionId: number;
   private classId: number;
   private enrollmentId: number;
   private loyaltyRewardId: number;
+  private userId: number;
+  private partnerId: number;
+  private promotionId: number;
   
   constructor() {
     this.bars = new Map();
@@ -384,12 +501,18 @@ export class MemStorage implements IStorage {
     this.classEnrollments = new Map();
     this.loyaltyPrograms = new Map();
     this.loyaltyRewards = new Map();
+    this.users = new Map();
+    this.partners = new Map();
+    this.promotions = new Map();
     
     this.orderId = 1;
     this.subscriptionId = 3;  // Starting after mock data
     this.classId = 3;        // Starting after mock data
     this.enrollmentId = 2;   // Starting after mock data
     this.loyaltyRewardId = 4;  // Starting after mock data
+    this.userId = 4;         // Starting after mock data
+    this.partnerId = 3;      // Starting after mock data
+    this.promotionId = 3;    // Starting after mock data
     
     // Initialize with mock data
     mockBars.forEach(bar => this.bars.set(bar.id, bar));
@@ -400,6 +523,9 @@ export class MemStorage implements IStorage {
     mockClassEnrollments.forEach(enr => this.classEnrollments.set(enr.id, enr));
     mockLoyaltyPrograms.forEach(lp => this.loyaltyPrograms.set(lp.userId, lp));
     mockLoyaltyRewards.forEach(reward => this.loyaltyRewards.set(reward.id, reward));
+    mockUsers.forEach(user => this.users.set(user.id, user));
+    mockPartners.forEach(partner => this.partners.set(partner.id, partner));
+    mockPromotions.forEach(promotion => this.promotions.set(promotion.id, promotion));
   }
   
   // Bar operations
@@ -449,6 +575,10 @@ export class MemStorage implements IStorage {
     return Array.from(this.orders.values()).filter(
       order => order.userId === userId
     );
+  }
+  
+  async getOrders(): Promise<Order[]> {
+    return Array.from(this.orders.values());
   }
   
   async updateOrderStatus(id: number, status: string): Promise<Order | undefined> {
@@ -667,6 +797,117 @@ export class MemStorage implements IStorage {
     this.loyaltyPrograms.set(userId, updatedProgram);
     
     return true;
+  }
+  
+  // User operations
+  async createUser(userData: InsertUser): Promise<User> {
+    const id = this.userId++;
+    const createdAt = new Date();
+    const user: User = { ...userData, id, createdAt };
+    this.users.set(id, user);
+    return user;
+  }
+  
+  async getUser(id: number): Promise<User | undefined> {
+    return this.users.get(id);
+  }
+  
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(user => user.username === username);
+  }
+  
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(user => user.email === email);
+  }
+  
+  async updateUser(id: number, data: Partial<InsertUser>): Promise<User | undefined> {
+    const user = this.users.get(id);
+    if (user) {
+      const updatedUser = { ...user, ...data };
+      this.users.set(id, updatedUser);
+      return updatedUser;
+    }
+    return undefined;
+  }
+  
+  // Partner operations
+  async createPartner(partnerData: InsertPartner): Promise<Partner> {
+    const id = this.partnerId++;
+    const partner: Partner = { ...partnerData, id };
+    this.partners.set(id, partner);
+    return partner;
+  }
+  
+  async getPartner(id: number): Promise<Partner | undefined> {
+    return this.partners.get(id);
+  }
+  
+  async getPartnerByUserId(userId: number): Promise<Partner | undefined> {
+    return Array.from(this.partners.values()).find(partner => partner.userId === userId);
+  }
+  
+  async getPartnerByBarId(barId: number): Promise<Partner | undefined> {
+    return Array.from(this.partners.values()).find(partner => partner.barId === barId);
+  }
+  
+  async updatePartner(id: number, data: Partial<InsertPartner>): Promise<Partner | undefined> {
+    const partner = this.partners.get(id);
+    if (partner) {
+      const updatedPartner = { ...partner, ...data };
+      this.partners.set(id, updatedPartner);
+      return updatedPartner;
+    }
+    return undefined;
+  }
+  
+  // Promotion operations
+  async createPromotion(promotionData: InsertPromotion): Promise<Promotion> {
+    const id = this.promotionId++;
+    const createdAt = new Date();
+    const usageCount = 0;
+    const promotion: Promotion = { ...promotionData, id, createdAt, usageCount };
+    this.promotions.set(id, promotion);
+    return promotion;
+  }
+  
+  async getPromotion(id: number): Promise<Promotion | undefined> {
+    return this.promotions.get(id);
+  }
+  
+  async getPromotions(): Promise<Promotion[]> {
+    return Array.from(this.promotions.values());
+  }
+  
+  async getPromotionsByBar(barId: number): Promise<Promotion[]> {
+    return Array.from(this.promotions.values()).filter(
+      promotion => promotion.barId === barId
+    );
+  }
+  
+  async getActivePromotions(): Promise<Promotion[]> {
+    const now = new Date();
+    return Array.from(this.promotions.values()).filter(
+      promotion => promotion.active && promotion.startDate <= now && promotion.endDate >= now
+    );
+  }
+  
+  async updatePromotion(id: number, data: Partial<InsertPromotion>): Promise<Promotion | undefined> {
+    const promotion = this.promotions.get(id);
+    if (promotion) {
+      const updatedPromotion = { ...promotion, ...data };
+      this.promotions.set(id, updatedPromotion);
+      return updatedPromotion;
+    }
+    return undefined;
+  }
+  
+  async deletePromotion(id: number): Promise<boolean> {
+    const exists = this.promotions.has(id);
+    if (exists) {
+      this.promotions.delete(id);
+      return true;
+    }
+    return false;
   }
 }
 
