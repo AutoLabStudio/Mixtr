@@ -11,6 +11,9 @@ export const bars = pgTable("bars", {
   rating: doublePrecision("rating").notNull(),
   deliveryTime: text("delivery_time").notNull(),
   tags: text("tags").array().notNull(),
+  location: text("location").notNull().default(""),
+  latitude: doublePrecision("latitude").notNull().default(0),
+  longitude: doublePrecision("longitude").notNull().default(0),
 });
 
 // Cocktail model

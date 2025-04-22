@@ -40,13 +40,28 @@ export default function Bars() {
               <input 
                 type="text" 
                 placeholder="Enter your location or zip code" 
-                className="w-full pl-10 pr-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30"
+                className="w-full pl-10 pr-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30 text-foreground bg-background"
+                id="locationSearch"
               />
             </div>
-            <Button className="shrink-0">
+            <Button 
+              className="shrink-0"
+              onClick={() => {
+                const searchInput = document.getElementById('locationSearch') as HTMLInputElement;
+                const searchTerm = searchInput?.value || '';
+                if (searchTerm.trim()) {
+                  // For now, just filter the visible bars
+                  alert(`Search functionality would find bars near: ${searchTerm}`);
+                  // In a real implementation, we would call a geolocation API here
+                }
+              }}
+            >
               Search
             </Button>
           </div>
+          <p className="text-xs text-muted-foreground mt-2">
+            Coming soon: Interactive map integration to find bars near your exact location!
+          </p>
         </div>
         
         {error ? (

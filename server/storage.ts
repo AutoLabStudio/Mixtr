@@ -71,6 +71,9 @@ const mockBars: Bar[] = [
     rating: 4.8,
     deliveryTime: "25-35 min",
     tags: ["Whiskey Specialists", "Craft Cocktails", "Intimate Setting"],
+    location: "123 Bourbon Street, New Orleans, LA",
+    latitude: 29.9584,
+    longitude: -90.0644,
   },
   {
     id: 2,
@@ -80,6 +83,9 @@ const mockBars: Bar[] = [
     rating: 4.9,
     deliveryTime: "20-30 min",
     tags: ["Coffee Cocktails", "Award-Winning", "Modern Ambiance"],
+    location: "456 Market Street, San Francisco, CA",
+    latitude: 37.7749,
+    longitude: -122.4194,
   },
   {
     id: 3,
@@ -89,6 +95,9 @@ const mockBars: Bar[] = [
     rating: 4.7,
     deliveryTime: "30-40 min",
     tags: ["Italian Influenced", "Aperitifs", "Lively Atmosphere"],
+    location: "789 Hudson Street, New York, NY",
+    latitude: 40.7128,
+    longitude: -74.0060,
   },
   {
     id: 4,
@@ -98,6 +107,9 @@ const mockBars: Bar[] = [
     rating: 4.8,
     deliveryTime: "25-35 min",
     tags: ["Garden Fresh", "Seasonal Menu", "Botanical Infusions"],
+    location: "321 Palm Avenue, Miami, FL",
+    latitude: 25.7617,
+    longitude: -80.1918,
   },
 ];
 
