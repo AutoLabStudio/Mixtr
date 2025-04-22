@@ -14,7 +14,10 @@ import OrderConfirmation from "@/pages/OrderConfirmation";
 import Subscriptions from "@/pages/Subscriptions";
 import MixologyClasses from "@/pages/MixologyClasses";
 import LoyaltyProgram from "@/pages/LoyaltyProgram";
+import PartnerAuth from "@/pages/PartnerAuth";
+import PartnerDashboard from "@/pages/PartnerDashboard";
 import { CartProvider } from "@/context/CartContext";
+import { AuthProvider } from "@/hooks/use-auth";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { CartSidebar } from "@/components/CartSidebar";
@@ -32,6 +35,9 @@ function Router() {
       <Route path="/subscriptions" component={Subscriptions} />
       <Route path="/mixology-classes" component={MixologyClasses} />
       <Route path="/loyalty-program" component={LoyaltyProgram} />
+      {/* Partner Routes */}
+      <Route path="/partner/auth" component={PartnerAuth} />
+      <Route path="/partner/dashboard" component={PartnerDashboard} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -41,17 +47,19 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <CartProvider>
-          <div className="min-h-screen flex flex-col">
-            <Header />
-            <main className="flex-grow">
-              <Router />
-            </main>
-            <Footer />
-            <CartSidebar />
-            <Toaster />
-          </div>
-        </CartProvider>
+        <AuthProvider>
+          <CartProvider>
+            <div className="min-h-screen flex flex-col">
+              <Header />
+              <main className="flex-grow">
+                <Router />
+              </main>
+              <Footer />
+              <CartSidebar />
+              <Toaster />
+            </div>
+          </CartProvider>
+        </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );
