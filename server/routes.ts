@@ -1,12 +1,20 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { setupAuth } from "./auth";
+import { partnerRouter } from "./partner-routes";
 import { 
   insertOrderSchema, insertSubscriptionSchema, 
   insertClassEnrollmentSchema, insertLoyaltyProgramSchema 
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Setup authentication
+  setupAuth(app);
+  
+  // Partner routes
+  app.use("/api/partner", partnerRouter);
+  
   // API Routes
   
   // Get all bars

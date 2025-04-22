@@ -1,6 +1,6 @@
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
-import { Express } from "express";
+import { Express, Request, Response, NextFunction } from "express";
 import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
@@ -8,11 +8,17 @@ import MemoryStore from "memorystore";
 import connectPgSimple from "connect-pg-simple";
 import { storage } from "./storage";
 import { pool } from "./db";
-import { User } from "@shared/schema";
+import { User, Partner } from "@shared/schema";
 
+// Extend Express Request type to include partner property
 declare global {
   namespace Express {
-    interface User extends User {}
+    interface User extends Omit<User, 'id'> {
+      id: number;
+    }
+    interface Request {
+      partner?: Partner;
+    }
   }
 }
 
@@ -30,6 +36,38 @@ export async function comparePasswords(supplied: string, stored: string): Promis
   const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
   return timingSafeEqual(hashedBuf, suppliedBuf);
 }
+
+// Partner-specific middleware to check if user is an approved partner
+export const requirePartner = async (req: Request, res: Response, next: NextFunction) => {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ error: "Not authenticated" });
+  }
+  
+  const user = req.user as Express.User;
+  
+  if (user.role !== "partner") {
+    return res.status(403).json({ error: "Not authorized. Partner access required." });
+  }
+  
+  try {
+    const partner = await storage.getPartnerByUserId(user.id);
+    
+    if (!partner) {
+      return res.status(404).json({ error: "Partner profile not found" });
+    }
+    
+    if (!partner.approved) {
+      return res.status(403).json({ error: "Your partner account is pending approval." });
+    }
+    
+    // Add partner info to request for convenient access
+    req.partner = partner;
+    next();
+  } catch (error) {
+    console.error("Error checking partner status:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
 
 export function setupAuth(app: Express) {
   const MemStore = MemoryStore(session);
@@ -87,7 +125,7 @@ export function setupAuth(app: Express) {
   );
   
   passport.serializeUser((user, done) => {
-    done(null, user.id);
+    done(null, (user as User).id);
   });
   
   passport.deserializeUser(async (id: number, done) => {
@@ -221,36 +259,4 @@ export function setupAuth(app: Express) {
       return res.status(500).json({ error: "Failed to fetch partner details" });
     }
   });
-  
-  // Partner-specific middleware to check if user is an approved partner
-  export const requirePartner = async (req, res, next) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ error: "Not authenticated" });
-    }
-    
-    const user = req.user as User;
-    
-    if (user.role !== "partner") {
-      return res.status(403).json({ error: "Not authorized. Partner access required." });
-    }
-    
-    try {
-      const partner = await storage.getPartnerByUserId(user.id);
-      
-      if (!partner) {
-        return res.status(404).json({ error: "Partner profile not found" });
-      }
-      
-      if (!partner.approved) {
-        return res.status(403).json({ error: "Your partner account is pending approval." });
-      }
-      
-      // Add partner info to request for convenient access
-      req.partner = partner;
-      next();
-    } catch (error) {
-      console.error("Error checking partner status:", error);
-      return res.status(500).json({ error: "Internal server error" });
-    }
-  };
 }

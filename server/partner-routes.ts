@@ -1,7 +1,18 @@
-import { Router } from "express";
-import { requirePartner } from "./auth";
+import { Router, Request } from "express";
 import { storage } from "./storage";
-import { InsertPromotion } from "@shared/schema";
+import { InsertPromotion, Partner } from "@shared/schema";
+
+// Extend Express Request type to include partner property
+declare global {
+  namespace Express {
+    interface Request {
+      partner?: Partner;
+    }
+  }
+}
+
+// Import the requirePartner middleware after extending the Request type
+import { requirePartner } from "./auth";
 
 const partnerRouter = Router();
 
@@ -9,6 +20,9 @@ const partnerRouter = Router();
 partnerRouter.get("/cocktails", requirePartner, async (req, res) => {
   try {
     const partner = req.partner;
+    if (!partner) {
+      return res.status(403).json({ error: "Partner information not available" });
+    }
     const cocktails = await storage.getCocktailsByBar(partner.barId);
     res.json(cocktails);
   } catch (error) {
@@ -21,6 +35,9 @@ partnerRouter.get("/cocktails", requirePartner, async (req, res) => {
 partnerRouter.get("/promotions", requirePartner, async (req, res) => {
   try {
     const partner = req.partner;
+    if (!partner) {
+      return res.status(403).json({ error: "Partner information not available" });
+    }
     const promotions = await storage.getPromotionsByBar(partner.barId);
     res.json(promotions);
   } catch (error) {
@@ -33,6 +50,9 @@ partnerRouter.get("/promotions", requirePartner, async (req, res) => {
 partnerRouter.post("/promotions", requirePartner, async (req, res) => {
   try {
     const partner = req.partner;
+    if (!partner) {
+      return res.status(403).json({ error: "Partner information not available" });
+    }
     const promotionData: InsertPromotion = {
       ...req.body,
       barId: partner.barId,
@@ -53,6 +73,9 @@ partnerRouter.patch("/promotions/:id", requirePartner, async (req, res) => {
   try {
     const promotionId = parseInt(req.params.id);
     const partner = req.partner;
+    if (!partner) {
+      return res.status(403).json({ error: "Partner information not available" });
+    }
     
     // Verify the promotion belongs to this partner's bar
     const promotion = await storage.getPromotion(promotionId);
@@ -86,6 +109,9 @@ partnerRouter.delete("/promotions/:id", requirePartner, async (req, res) => {
   try {
     const promotionId = parseInt(req.params.id);
     const partner = req.partner;
+    if (!partner) {
+      return res.status(403).json({ error: "Partner information not available" });
+    }
     
     // Verify the promotion belongs to this partner's bar
     const promotion = await storage.getPromotion(promotionId);
@@ -109,6 +135,9 @@ partnerRouter.delete("/promotions/:id", requirePartner, async (req, res) => {
 partnerRouter.get("/orders", requirePartner, async (req, res) => {
   try {
     const partner = req.partner;
+    if (!partner) {
+      return res.status(403).json({ error: "Partner information not available" });
+    }
     const allOrders = await storage.getOrders();
     
     // Filter orders that include cocktails from this bar
@@ -130,6 +159,9 @@ partnerRouter.patch("/orders/:id/status", requirePartner, async (req, res) => {
     const orderId = parseInt(req.params.id);
     const { status } = req.body;
     const partner = req.partner;
+    if (!partner) {
+      return res.status(403).json({ error: "Partner information not available" });
+    }
     
     // Verify the order includes items from this partner's bar
     const order = await storage.getOrder(orderId);
@@ -156,6 +188,9 @@ partnerRouter.patch("/orders/:id/status", requirePartner, async (req, res) => {
 partnerRouter.get("/analytics", requirePartner, async (req, res) => {
   try {
     const partner = req.partner;
+    if (!partner) {
+      return res.status(403).json({ error: "Partner information not available" });
+    }
     const allOrders = await storage.getOrders();
     const promotions = await storage.getPromotionsByBar(partner.barId);
     const cocktails = await storage.getCocktailsByBar(partner.barId);
