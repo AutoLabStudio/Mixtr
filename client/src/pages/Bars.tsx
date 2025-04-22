@@ -76,9 +76,9 @@ export default function Bars() {
                   <Button 
                     className="flex-1"
                     onClick={() => {
-                      const mapBtn = document.getElementById('findBarsMapButton');
-                      if (mapBtn instanceof HTMLButtonElement) {
-                        mapBtn.click();
+                      // Call the global function we exposed from MapComponent
+                      if (window.openBarMap) {
+                        window.openBarMap();
                       }
                     }}
                   >
@@ -90,10 +90,9 @@ export default function Bars() {
                     variant="outline"
                     className="flex-1"
                     onClick={() => {
-                      // Get current location and open map
-                      const mapBtn = document.getElementById('findBarsMapButton');
-                      if (mapBtn instanceof HTMLButtonElement) {
-                        mapBtn.click();
+                      // Call the global function we exposed from MapComponent
+                      if (window.openBarMap) {
+                        window.openBarMap();
                       }
                     }}
                   >

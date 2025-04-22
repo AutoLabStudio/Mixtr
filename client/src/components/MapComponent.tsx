@@ -30,6 +30,21 @@ export function MapComponent({ bars }: MapComponentProps) {
       }
     }, 1000);
   }, [userLocation]);
+
+  // Expose a public method to open the map, which we can call from other components
+  useEffect(() => {
+    // This adds a global function that can be called from anywhere
+    window.openBarMap = () => {
+      setShowMap(true);
+      getUserLocation();
+    };
+
+    return () => {
+      // Clean up when component unmounts
+      // @ts-ignore
+      delete window.openBarMap;
+    };
+  }, []);
   
   // Set default positions for bars to ensure they're always visible
   const barPositions = bars.map((bar, index) => {
@@ -45,9 +60,6 @@ export function MapComponent({ bars }: MapComponentProps) {
 
   // Simulate getting the user's current location
   const getUserLocation = () => {
-    // Show map immediately regardless of geolocation
-    setShowMap(true);
-    
     if (!navigator.geolocation) {
       setLocationError("Geolocation is not supported by your browser");
       return;
@@ -79,9 +91,11 @@ export function MapComponent({ bars }: MapComponentProps) {
     <>
       <Button 
         variant="outline" 
-        className="w-full flex items-center justify-center hidden"
-        onClick={getUserLocation}
-        id="findBarsMapButton"
+        className="w-full flex items-center justify-center"
+        onClick={() => {
+          setShowMap(true);
+          getUserLocation();
+        }}
       >
         <MapPin className="mr-2 h-4 w-4" />
         Find Bars on Map
