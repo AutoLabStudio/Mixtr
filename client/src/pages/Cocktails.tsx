@@ -37,10 +37,17 @@ export default function Cocktails() {
   // Filter and sort cocktails
   const filteredCocktails = cocktails ? 
     cocktails
-      .filter(cocktail => 
-        cocktail.name.toLowerCase().includes(filter.toLowerCase()) ||
-        cocktail.description.toLowerCase().includes(filter.toLowerCase())
-      )
+      .filter(cocktail => {
+        // Text search filter
+        const textMatch = 
+          cocktail.name.toLowerCase().includes(filter.toLowerCase()) ||
+          cocktail.description.toLowerCase().includes(filter.toLowerCase());
+          
+        // Bar filter
+        const barMatch = barFilter ? cocktail.barId === parseInt(barFilter) : true;
+        
+        return textMatch && barMatch;
+      })
       .sort((a, b) => {
         if (sort === "popular") return b.rating - a.rating;
         if (sort === "price-low") return a.price - b.price;
@@ -79,6 +86,22 @@ export default function Cocktails() {
                   value={filter}
                   onChange={(e) => setFilter(e.target.value)}
                 />
+              </div>
+              
+              <div className="w-full md:w-48">
+                <Select value={barFilter} onValueChange={setBarFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Filter by bar" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All Bars</SelectItem>
+                    {bars?.map(bar => (
+                      <SelectItem key={bar.id} value={bar.id.toString()}>
+                        {bar.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               
               <div className="w-full md:w-48">
@@ -150,7 +173,10 @@ export default function Cocktails() {
                   <p className="text-muted-foreground mb-6">
                     We couldn't find any cocktails matching your search criteria.
                   </p>
-                  <Button onClick={() => setFilter("")}>Clear Search</Button>
+                  <Button onClick={() => {
+                    setFilter("");
+                    setBarFilter("");
+                  }}>Clear Filters</Button>
                 </div>
               )}
             </>

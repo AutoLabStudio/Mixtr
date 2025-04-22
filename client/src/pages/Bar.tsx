@@ -5,7 +5,8 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Star, Clock, MapPin, Phone } from "lucide-react";
+import { Star, Clock, MapPin, Phone } from "lucide-react";
+import { BackButton } from "@/components/BackButton";
 import { useCart } from "@/context/CartContext";
 import { formatCurrency } from "@/lib/utils";
 import { Helmet } from "react-helmet";
@@ -65,11 +66,7 @@ export default function Bar() {
       <div className="pt-20 pb-16 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-6">
-            <Button variant="ghost" asChild className="pl-0">
-              <Link href="/">
-                <ArrowLeft className="mr-2 h-4 w-4" /> Back to Bars
-              </Link>
-            </Button>
+            <BackButton fallbackPath="/" />
           </div>
           
           {isLoading ? (
