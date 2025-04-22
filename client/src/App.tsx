@@ -9,6 +9,9 @@ import Cocktail from "@/pages/Cocktail";
 import Bar from "@/pages/Bar";
 import Checkout from "@/pages/Checkout";
 import OrderConfirmation from "@/pages/OrderConfirmation";
+import Subscriptions from "@/pages/Subscriptions";
+import MixologyClasses from "@/pages/MixologyClasses";
+import LoyaltyProgram from "@/pages/LoyaltyProgram";
 import { CartProvider } from "@/context/CartContext";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -22,6 +25,9 @@ function Router() {
       <Route path="/bars/:id" component={Bar} />
       <Route path="/checkout" component={Checkout} />
       <Route path="/order-confirmation/:id" component={OrderConfirmation} />
+      <Route path="/subscriptions" component={Subscriptions} />
+      <Route path="/mixology-classes" component={MixologyClasses} />
+      <Route path="/loyalty-program" component={LoyaltyProgram} />
       <Route component={NotFound} />
     </Switch>
   );

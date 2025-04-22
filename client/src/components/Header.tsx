@@ -14,8 +14,9 @@ export function Header() {
   const navLinks = [
     { name: "Featured", href: "/#featured" },
     { name: "Top Bars", href: "/#bars" },
-    { name: "Specials", href: "/#specials" },
-    { name: "About", href: "/#about" }
+    { name: "Subscriptions", href: "/subscriptions" },
+    { name: "Mixology Classes", href: "/mixology-classes" },
+    { name: "Loyalty Program", href: "/loyalty-program" }
   ];
 
   return (
