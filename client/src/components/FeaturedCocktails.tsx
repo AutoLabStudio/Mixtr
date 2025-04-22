@@ -61,11 +61,11 @@ export function FeaturedCocktails() {
           <Button 
             variant="outline" 
             className="border-primary text-primary hover:bg-primary/10"
-            asChild
+            onClick={() => {
+              window.location.href = "/cocktails";
+            }}
           >
-            <Link href="/cocktails">
-              View All Cocktails <ChevronRight className="ml-2 h-4 w-4" />
-            </Link>
+            View All Cocktails <ChevronRight className="ml-2 h-4 w-4" />
           </Button>
         </div>
       </div>
@@ -97,9 +97,16 @@ function CocktailCard({ cocktail, onAddToCart }: { cocktail: Cocktail, onAddToCa
         <div className="flex justify-between items-start mb-3">
           <div>
             <h3 className="font-serif font-semibold text-xl">
-              <Link href={`/cocktails/${cocktail.id}`} className="hover:text-primary transition-colors">
+              <a 
+                href={`/cocktails/${cocktail.id}`} 
+                className="hover:text-primary transition-colors"
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.location.href = `/cocktails/${cocktail.id}`;
+                }}
+              >
                 {cocktail.name}
-              </Link>
+              </a>
             </h3>
             <p className="text-sm text-muted-foreground">{barName}</p>
           </div>

@@ -20,21 +20,21 @@ export function HeroSection() {
             <Button 
               size="lg" 
               className="w-full md:w-auto bg-accent hover:bg-accent/90 text-accent-foreground"
-              asChild
+              onClick={() => {
+                window.location.href = "/cocktails";
+              }}
             >
-              <Link href="/cocktails">
-                <GlassWater className="mr-2 h-5 w-5" /> Browse Cocktails
-              </Link>
+              <GlassWater className="mr-2 h-5 w-5" /> Browse Cocktails
             </Button>
             <Button 
               size="lg" 
               variant="outline" 
               className="w-full md:w-auto border-primary text-primary hover:bg-primary/10"
-              asChild
+              onClick={() => {
+                window.location.href = "/bars";
+              }}
             >
-              <Link href="/bars">
-                <MapPin className="mr-2 h-5 w-5" /> Find Nearby Bars
-              </Link>
+              <MapPin className="mr-2 h-5 w-5" /> Find Nearby Bars
             </Button>
           </div>
         </div>
