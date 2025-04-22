@@ -16,6 +16,20 @@ export function MapComponent({ bars }: MapComponentProps) {
   const [showMap, setShowMap] = useState(false);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
+  const [selectedBar, setSelectedBar] = useState<Bar | null>(null);
+  
+  // Initialize with default positions for bars (New York City area)
+  useEffect(() => {
+    // Default to New York location if geolocation isn't available immediately
+    setTimeout(() => {
+      if (!userLocation) {
+        setUserLocation({
+          lat: 40.7128,
+          lng: -74.0060
+        });
+      }
+    }, 1000);
+  }, [userLocation]);
   
   // Set default positions for bars to ensure they're always visible
   const barPositions = bars.map((bar, index) => {
@@ -65,8 +79,9 @@ export function MapComponent({ bars }: MapComponentProps) {
     <>
       <Button 
         variant="outline" 
-        className="w-full flex items-center justify-center"
+        className="w-full flex items-center justify-center hidden"
         onClick={getUserLocation}
+        id="findBarsMapButton"
       >
         <MapPin className="mr-2 h-4 w-4" />
         Find Bars on Map

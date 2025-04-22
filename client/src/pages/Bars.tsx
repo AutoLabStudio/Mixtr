@@ -35,43 +35,77 @@ export default function Bars() {
         
         <div className="bg-muted/50 rounded-lg p-6 mb-10">
           <h2 className="text-xl font-medium mb-4">Find Bars Near You</h2>
-          <div className="flex flex-col md:flex-row gap-4 md:items-start">
-            <div className="flex items-center gap-4 flex-wrap flex-grow">
-              <div className="relative flex-grow max-w-md">
-                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
-                <input 
-                  type="text" 
-                  placeholder="Enter your location or zip code" 
-                  className="w-full pl-10 pr-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30 text-foreground bg-background"
-                  id="locationSearch"
-                />
+          <div className="flex flex-col md:flex-row gap-6 md:items-start">
+            {/* Map Visualization Section */}
+            <div className="md:w-2/5 flex flex-col gap-3">
+              <div className="bg-background/70 rounded-md p-4 shadow-sm">
+                <h3 className="text-base font-medium mb-3">Interactive Map</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Use our interactive map to find and explore partner bars in your area.
+                </p>
+                
+                {!isLoading && bars && (
+                  <div className="relative">
+                    <MapComponent bars={bars} />
+                    <div className="mt-3 flex gap-2 items-center justify-center text-xs text-muted-foreground">
+                      <div className="flex-shrink-0 h-3 w-3 rounded-full bg-blue-500"></div>
+                      <span>Your location</span>
+                      <div className="ml-3 flex-shrink-0 h-3 w-3 rounded-full bg-primary"></div>
+                      <span>Partner bars</span>
+                    </div>
+                  </div>
+                )}
               </div>
-              <Button 
-                className="shrink-0"
-                onClick={() => {
-                  // Find the "Find Bars on Map" button in the same container and trigger its click
-                  const mapBtn = document.querySelector('button[class*="w-full flex items-center justify-center"]');
-                  if (mapBtn instanceof HTMLButtonElement) {
-                    mapBtn.click();
-                  }
-                }}
-              >
-                Search
-              </Button>
             </div>
             
-            <div className="mt-2 md:mt-0 md:w-1/3">
-              {!isLoading && bars && (
-                <MapComponent bars={bars} />
-              )}
+            {/* Search Area */}
+            <div className="md:w-3/5 flex flex-col gap-3">
+              <div className="bg-background/70 rounded-md p-4 shadow-sm">
+                <h3 className="text-base font-medium mb-3">Search by Address</h3>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+                  <input 
+                    type="text" 
+                    placeholder="Enter your address, city, or zip code" 
+                    className="w-full pl-10 pr-4 py-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30 text-foreground bg-background"
+                    id="locationSearch"
+                  />
+                </div>
+                
+                <div className="mt-4 flex gap-2">
+                  <Button 
+                    className="flex-1"
+                    onClick={() => {
+                      const mapBtn = document.getElementById('findBarsMapButton');
+                      if (mapBtn instanceof HTMLButtonElement) {
+                        mapBtn.click();
+                      }
+                    }}
+                  >
+                    <MapPin className="mr-2 h-4 w-4" />
+                    Search Location
+                  </Button>
+                  
+                  <Button 
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => {
+                      // Get current location and open map
+                      const mapBtn = document.getElementById('findBarsMapButton');
+                      if (mapBtn instanceof HTMLButtonElement) {
+                        mapBtn.click();
+                      }
+                    }}
+                  >
+                    Use Current Location
+                  </Button>
+                </div>
+                
+                <p className="text-xs text-muted-foreground mt-3">
+                  Allow location access when prompted to find bars closest to you.
+                </p>
+              </div>
             </div>
-          </div>
-          
-          <div className="mt-4 flex gap-2 items-center text-sm text-muted-foreground">
-            <div className="flex-shrink-0 h-3 w-3 rounded-full bg-blue-500"></div>
-            <span>Your location</span>
-            <div className="ml-4 flex-shrink-0 h-3 w-3 rounded-full bg-primary"></div>
-            <span>Partner bars</span>
           </div>
         </div>
         
