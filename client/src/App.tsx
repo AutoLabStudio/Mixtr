@@ -14,6 +14,7 @@ import OrderConfirmation from "@/pages/OrderConfirmation";
 import Subscriptions from "@/pages/Subscriptions";
 import MixologyClasses from "@/pages/MixologyClasses";
 import LoyaltyProgram from "@/pages/LoyaltyProgram";
+import AuthPage from "@/pages/AuthPage";
 import PartnerAuth from "@/pages/PartnerAuth";
 import PartnerDashboard from "@/pages/PartnerDashboard";
 import { CartProvider } from "@/context/CartContext";
@@ -35,6 +36,8 @@ function Router() {
       <Route path="/subscriptions" component={Subscriptions} />
       <Route path="/mixology-classes" component={MixologyClasses} />
       <Route path="/loyalty-program" component={LoyaltyProgram} />
+      {/* Auth Routes */}
+      <Route path="/auth" component={AuthPage} />
       {/* Partner Routes */}
       <Route path="/partner/auth" component={PartnerAuth} />
       <Route path="/partner/dashboard" component={PartnerDashboard} />

@@ -52,7 +52,45 @@ export function Header() {
             ))}
           </nav>
           
-          <div className="flex items-center">
+          <div className="flex items-center gap-2">
+            {/* Authentication Menu */}
+            {user ? (
+              <>
+                {/* User is logged in */}
+                {user.role === 'partner' && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="hidden md:flex items-center gap-1 text-primary border-primary/30 hover:bg-primary/10"
+                    onClick={() => setLocation("/partner/dashboard")}
+                  >
+                    <User className="h-4 w-4" />
+                    Partner Portal
+                  </Button>
+                )}
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="hidden md:flex items-center gap-1"
+                  onClick={() => logoutMutation.mutate()}
+                >
+                  <LogOut className="h-4 w-4" />
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className="hidden md:flex items-center gap-1"
+                onClick={() => setLocation("/auth")}
+              >
+                <LogIn className="h-4 w-4" />
+                Login
+              </Button>
+            )}
+            
+            {/* Shopping Cart Button */}
             <Button
               variant="ghost"
               size="icon"
@@ -67,6 +105,7 @@ export function Header() {
               )}
             </Button>
             
+            {/* Mobile menu button */}
             <Button
               variant="ghost"
               size="icon"
@@ -100,6 +139,47 @@ export function Header() {
                 )}
               </a>
             ))}
+            
+            {/* Mobile Authentication Menu */}
+            <div className="mt-2 pt-2 border-t border-border">
+              {user ? (
+                <>
+                  {user.role === 'partner' && (
+                    <a
+                      className="flex items-center gap-1 px-3 py-2 text-base font-medium text-primary"
+                      onClick={() => {
+                        setLocation("/partner/dashboard");
+                        setIsMenuOpen(false);
+                      }}
+                    >
+                      <User className="h-4 w-4" />
+                      Partner Portal
+                    </a>
+                  )}
+                  <a
+                    className="flex items-center gap-1 px-3 py-2 text-base font-medium text-muted-foreground"
+                    onClick={() => {
+                      logoutMutation.mutate();
+                      setIsMenuOpen(false);
+                    }}
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Logout
+                  </a>
+                </>
+              ) : (
+                <a
+                  className="flex items-center gap-1 px-3 py-2 text-base font-medium text-muted-foreground"
+                  onClick={() => {
+                    setLocation("/auth");
+                    setIsMenuOpen(false);
+                  }}
+                >
+                  <LogIn className="h-4 w-4" />
+                  Login
+                </a>
+              )}
+            </div>
           </div>
         </div>
       )}
