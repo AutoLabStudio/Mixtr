@@ -38,7 +38,11 @@ export function Header() {
             {navLinks.map((link) => (
               <a
                 key={link.name}
-                href={link.href}
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setLocation(link.href);
+                }}
                 className={`transition-colors px-3 py-2 text-sm font-medium ${
                   link.highlight 
                     ? "text-primary hover:text-primary/80 relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary/30 after:rounded-full" 
@@ -129,13 +133,17 @@ export function Header() {
             {navLinks.map((link) => (
               <a
                 key={link.name}
-                href={link.href}
+                href="#"
                 className={`block px-3 py-2 text-base font-medium transition-colors relative ${
                   link.highlight 
                     ? "text-primary" 
                     : "text-muted-foreground hover:text-primary"
                 }`}
-                onClick={() => setIsMenuOpen(false)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setLocation(link.href);
+                  setIsMenuOpen(false);
+                }}
               >
                 <span className="flex items-center gap-2">
                   {link.icon && React.createElement(link.icon, { className: "h-4 w-4" })}
