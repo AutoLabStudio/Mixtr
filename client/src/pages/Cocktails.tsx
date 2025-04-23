@@ -224,12 +224,8 @@ function CocktailCard({ cocktail, onAddToCart }: { cocktail: Cocktail, onAddToCa
           <div>
             <h3 className="font-serif font-semibold text-xl">
               <a 
-                href="#"
+                href={`/cocktails/${cocktail.id}`}
                 className="hover:text-primary transition-colors"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setLocation(`/cocktails/${cocktail.id}`);
-                }}
               >
                 {cocktail.name}
               </a>

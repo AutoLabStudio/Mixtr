@@ -59,13 +59,12 @@ export function FeaturedCocktails() {
         </div>
 
         <div className="text-center mt-10">
-          <Button 
-            variant="outline" 
-            className="border-primary text-primary hover:bg-primary/10"
-            onClick={() => window.location.href = "/cocktails"}
+          <a 
+            href="/cocktails"
+            className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-primary bg-background text-primary hover:bg-primary/10 h-10 px-4 py-2"
           >
             View All Cocktails <ChevronRight className="ml-2 h-4 w-4" />
-          </Button>
+          </a>
         </div>
       </div>
     </section>
@@ -97,13 +96,12 @@ function CocktailCard({ cocktail, onAddToCart }: { cocktail: Cocktail, onAddToCa
         <div className="flex justify-between items-start mb-3">
           <div>
             <h3 className="font-serif font-semibold text-xl">
-              <Button 
-                variant="link"
-                className="p-0 h-auto font-serif font-semibold text-xl text-inherit hover:text-primary"
-                onClick={() => window.location.href = `/cocktails/${cocktail.id}`}
+              <a 
+                href={`/cocktails/${cocktail.id}`}
+                className="font-serif font-semibold text-xl text-inherit hover:text-primary transition-colors cursor-pointer"
               >
                 {cocktail.name}
-              </Button>
+              </a>
             </h3>
             <p className="text-sm text-muted-foreground">{barName}</p>
           </div>
