@@ -31,20 +31,7 @@ export function MapComponent({ bars }: MapComponentProps) {
     }, 1000);
   }, [userLocation]);
 
-  // Expose a public method to open the map, which we can call from other components
-  useEffect(() => {
-    // This adds a global function that can be called from anywhere
-    window.openBarMap = () => {
-      setShowMap(true);
-      getUserLocation();
-    };
-
-    return () => {
-      // Clean up when component unmounts
-      // @ts-ignore
-      delete window.openBarMap;
-    };
-  }, []);
+  // We're removing the global window function that was causing issues
   
   // Set default positions for bars to ensure they're always visible
   const barPositions = bars.map((bar, index) => {

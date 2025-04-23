@@ -1,8 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { GlassWater, MapPin } from "lucide-react";
-import { Link } from "wouter";
+import { useLocation } from "wouter";
 
 export function HeroSection() {
+  const [_, setLocation] = useLocation();
+
   return (
     <section className="pt-20 pb-12 relative">
       <div className="absolute inset-0 bg-gradient-to-b from-background/70 to-background z-0"></div>
@@ -20,9 +22,7 @@ export function HeroSection() {
             <Button 
               size="lg" 
               className="w-full md:w-auto bg-accent hover:bg-accent/90 text-accent-foreground"
-              onClick={() => {
-                window.location.href = "/cocktails";
-              }}
+              onClick={() => setLocation("/cocktails")}
             >
               <GlassWater className="mr-2 h-5 w-5" /> Browse Cocktails
             </Button>
@@ -30,9 +30,7 @@ export function HeroSection() {
               size="lg" 
               variant="outline" 
               className="w-full md:w-auto border-primary text-primary hover:bg-primary/10"
-              onClick={() => {
-                window.location.href = "/bars";
-              }}
+              onClick={() => setLocation("/bars")}
             >
               <MapPin className="mr-2 h-5 w-5" /> Find Nearby Bars
             </Button>

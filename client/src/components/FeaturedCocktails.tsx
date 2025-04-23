@@ -1,15 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "wouter";
+import { useLocation } from "wouter";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Star, Clock, ChevronRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCart } from "@/context/CartContext";
 import { formatCurrency } from "@/lib/utils";
-import type { Cocktail } from "@shared/schema";
+import type { Cocktail, Bar } from "@shared/schema";
 
 export function FeaturedCocktails() {
   const { addToCart } = useCart();
+  const [_, setLocation] = useLocation();
   
   const { data: cocktails, isLoading, error } = useQuery<Cocktail[]>({
     queryKey: ['/api/cocktails/featured'],
@@ -61,9 +62,7 @@ export function FeaturedCocktails() {
           <Button 
             variant="outline" 
             className="border-primary text-primary hover:bg-primary/10"
-            onClick={() => {
-              window.location.href = "/cocktails";
-            }}
+            onClick={() => setLocation("/cocktails")}
           >
             View All Cocktails <ChevronRight className="ml-2 h-4 w-4" />
           </Button>
@@ -74,7 +73,8 @@ export function FeaturedCocktails() {
 }
 
 function CocktailCard({ cocktail, onAddToCart }: { cocktail: Cocktail, onAddToCart: () => void }) {
-  const { data: barData } = useQuery({
+  const [_, setLocation] = useLocation();
+  const { data: barData } = useQuery<Bar>({
     queryKey: [`/api/bars/${cocktail.barId}`],
     enabled: !!cocktail.barId,
   });
@@ -98,11 +98,11 @@ function CocktailCard({ cocktail, onAddToCart }: { cocktail: Cocktail, onAddToCa
           <div>
             <h3 className="font-serif font-semibold text-xl">
               <a 
-                href={`/cocktails/${cocktail.id}`} 
+                href="#"
                 className="hover:text-primary transition-colors"
                 onClick={(e) => {
                   e.preventDefault();
-                  window.location.href = `/cocktails/${cocktail.id}`;
+                  setLocation(`/cocktails/${cocktail.id}`);
                 }}
               >
                 {cocktail.name}

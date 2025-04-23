@@ -75,12 +75,7 @@ export default function Bars() {
                 <div className="mt-4 flex gap-2">
                   <Button 
                     className="flex-1"
-                    onClick={() => {
-                      // Call the global function we exposed from MapComponent
-                      if (window.openBarMap) {
-                        window.openBarMap();
-                      }
-                    }}
+                    disabled={isLoading}
                   >
                     <MapPin className="mr-2 h-4 w-4" />
                     Search Location
@@ -89,12 +84,7 @@ export default function Bars() {
                   <Button 
                     variant="outline"
                     className="flex-1"
-                    onClick={() => {
-                      // Call the global function we exposed from MapComponent
-                      if (window.openBarMap) {
-                        window.openBarMap();
-                      }
-                    }}
+                    disabled={isLoading}
                   >
                     Use Current Location
                   </Button>
@@ -131,6 +121,8 @@ export default function Bars() {
 }
 
 function BarCard({ bar }: { bar: Bar }) {
+  const [_, setLocation] = useLocation();
+
   return (
     <Card className="overflow-hidden h-full flex flex-col">
       <div className="h-48 relative">
@@ -149,9 +141,16 @@ function BarCard({ bar }: { bar: Bar }) {
       
       <CardContent className="flex-grow flex flex-col p-5">
         <h3 className="font-serif font-semibold text-xl mb-2">
-          <Link href={`/bars/${bar.id}`} className="hover:text-primary transition-colors">
+          <a 
+            href="#" 
+            className="hover:text-primary transition-colors"
+            onClick={(e) => {
+              e.preventDefault();
+              setLocation(`/bars/${bar.id}`);
+            }}
+          >
             {bar.name}
-          </Link>
+          </a>
         </h3>
         
         <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{bar.description}</p>
@@ -180,10 +179,13 @@ function BarCard({ bar }: { bar: Bar }) {
             <span>{bar.deliveryTime} delivery</span>
           </div>
           
-          <Button variant="ghost" size="sm" className="text-primary px-2" asChild>
-            <Link href={`/bars/${bar.id}`}>
-              View Menu <ChevronRight className="ml-1 h-4 w-4" />
-            </Link>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="text-primary px-2"
+            onClick={() => setLocation(`/bars/${bar.id}`)}
+          >
+            View Menu <ChevronRight className="ml-1 h-4 w-4" />
           </Button>
         </div>
       </CardContent>
