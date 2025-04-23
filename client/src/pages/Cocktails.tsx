@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Helmet } from "react-helmet";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,7 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Star, Clock, ChevronRight, Search, GlassWater as CocktailIcon } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { formatCurrency } from "@/lib/utils";
-import type { Cocktail } from "@shared/schema";
+import type { Cocktail, Bar } from "@shared/schema";
 
 export default function Cocktails() {
   const [filter, setFilter] = useState("");
@@ -30,7 +30,7 @@ export default function Cocktails() {
   });
   
   // Fetch bars for filter dropdown
-  const { data: bars } = useQuery({
+  const { data: bars } = useQuery<Bar[]>({
     queryKey: ['/api/bars'],
   });
 
@@ -188,6 +188,7 @@ export default function Cocktails() {
 }
 
 function CocktailCard({ cocktail, onAddToCart }: { cocktail: Cocktail, onAddToCart: () => void }) {
+  const [_, setLocation] = useLocation();
   const { data: barData } = useQuery<{
     id: number;
     name: string;
@@ -222,9 +223,16 @@ function CocktailCard({ cocktail, onAddToCart }: { cocktail: Cocktail, onAddToCa
         <div className="flex justify-between items-start mb-3">
           <div>
             <h3 className="font-serif font-semibold text-xl">
-              <Link href={`/cocktails/${cocktail.id}`} className="hover:text-primary transition-colors">
+              <a 
+                href="#"
+                className="hover:text-primary transition-colors"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setLocation(`/cocktails/${cocktail.id}`);
+                }}
+              >
                 {cocktail.name}
-              </Link>
+              </a>
             </h3>
             <p className="text-sm text-muted-foreground">{barName}</p>
           </div>

@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Star, Clock, ChevronRight, MapPin } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -69,13 +69,14 @@ export default function Bars() {
                     placeholder="Enter your address, city, or zip code" 
                     className="w-full pl-10 pr-4 py-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30 text-foreground bg-background"
                     id="locationSearch"
+                    disabled
                   />
                 </div>
                 
                 <div className="mt-4 flex gap-2">
                   <Button 
                     className="flex-1"
-                    disabled={isLoading}
+                    disabled={true}
                   >
                     <MapPin className="mr-2 h-4 w-4" />
                     Search Location
@@ -84,14 +85,14 @@ export default function Bars() {
                   <Button 
                     variant="outline"
                     className="flex-1"
-                    disabled={isLoading}
+                    disabled={true}
                   >
                     Use Current Location
                   </Button>
                 </div>
                 
                 <p className="text-xs text-muted-foreground mt-3">
-                  Allow location access when prompted to find bars closest to you.
+                  Location search is temporarily disabled for maintenance.
                 </p>
               </div>
             </div>
