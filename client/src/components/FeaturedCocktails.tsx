@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Star, Clock, ChevronRight } from "lucide-react";
@@ -62,7 +62,7 @@ export function FeaturedCocktails() {
           <Button 
             variant="outline" 
             className="border-primary text-primary hover:bg-primary/10"
-            onClick={() => setLocation("/cocktails")}
+            onClick={() => window.location.href = "/cocktails"}
           >
             View All Cocktails <ChevronRight className="ml-2 h-4 w-4" />
           </Button>
@@ -97,16 +97,13 @@ function CocktailCard({ cocktail, onAddToCart }: { cocktail: Cocktail, onAddToCa
         <div className="flex justify-between items-start mb-3">
           <div>
             <h3 className="font-serif font-semibold text-xl">
-              <a 
-                href="#"
-                className="hover:text-primary transition-colors"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setLocation(`/cocktails/${cocktail.id}`);
-                }}
+              <Button 
+                variant="link"
+                className="p-0 h-auto font-serif font-semibold text-xl text-inherit hover:text-primary"
+                onClick={() => window.location.href = `/cocktails/${cocktail.id}`}
               >
                 {cocktail.name}
-              </a>
+              </Button>
             </h3>
             <p className="text-sm text-muted-foreground">{barName}</p>
           </div>
