@@ -1,15 +1,6 @@
 import { GlassWater, MapPin } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 export function HeroSection() {
-  const navigateToCocktails = () => {
-    window.location.href = "/cocktails";
-  };
-
-  const navigateToBars = () => {
-    window.location.href = "/bars";
-  };
-
   return (
     <section className="pt-20 pb-12 relative">
       <div className="absolute inset-0 bg-gradient-to-b from-background/70 to-background z-0"></div>
@@ -24,21 +15,18 @@ export function HeroSection() {
             Premium cocktails from the best bars in your city, delivered to wherever you are.
           </p>
           <div className="mt-10 md:flex md:justify-center md:space-x-8 space-y-4 md:space-y-0">
-            <Button 
-              size="lg" 
-              className="w-full md:w-auto bg-accent hover:bg-accent/90 text-accent-foreground"
-              onClick={navigateToCocktails}
+            <a 
+              href="/cocktails"
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-accent text-accent-foreground hover:bg-accent/90 h-11 px-4 py-2 w-full md:w-auto"
             >
               <GlassWater className="mr-2 h-5 w-5" /> Browse Cocktails
-            </Button>
-            <Button 
-              size="lg" 
-              variant="outline" 
-              className="w-full md:w-auto border-primary text-primary hover:bg-primary/10"
-              onClick={navigateToBars}
+            </a>
+            <a 
+              href="/bars"
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 border border-primary bg-background text-primary hover:bg-primary/10 h-11 px-4 py-2 w-full md:w-auto"
             >
               <MapPin className="mr-2 h-5 w-5" /> Find Nearby Bars
-            </Button>
+            </a>
           </div>
         </div>
       </div>

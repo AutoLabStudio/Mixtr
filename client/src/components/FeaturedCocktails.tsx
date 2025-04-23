@@ -14,10 +14,6 @@ export function FeaturedCocktails() {
     queryKey: ['/api/cocktails/featured'],
   });
 
-  const navigateToAllCocktails = () => {
-    window.location.href = "/cocktails";
-  };
-
   if (error) {
     return (
       <div className="py-12 text-center text-muted-foreground">
@@ -61,13 +57,12 @@ export function FeaturedCocktails() {
         </div>
 
         <div className="text-center mt-10">
-          <Button 
-            variant="outline" 
-            className="border-primary text-primary hover:bg-primary/10"
-            onClick={navigateToAllCocktails}
+          <a 
+            href="/cocktails"
+            className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 border border-primary text-primary hover:bg-primary/10 h-10 px-4 py-2"
           >
             View All Cocktails <ChevronRight className="ml-2 h-4 w-4" />
-          </Button>
+          </a>
         </div>
       </div>
     </section>
@@ -81,10 +76,6 @@ function CocktailCard({ cocktail, onAddToCart }: { cocktail: Cocktail, onAddToCa
   });
 
   const barName = barData?.name || "Loading...";
-  
-  const navigateToCocktail = () => {
-    window.location.href = `/cocktails/${cocktail.id}`;
-  };
 
   return (
     <Card className="bg-background rounded-lg overflow-hidden shadow-lg transition-transform hover:scale-[1.02]">
@@ -102,13 +93,12 @@ function CocktailCard({ cocktail, onAddToCart }: { cocktail: Cocktail, onAddToCa
         <div className="flex justify-between items-start mb-3">
           <div>
             <h3 className="font-serif font-semibold text-xl">
-              <Button 
-                variant="link"
-                className="p-0 h-auto font-serif font-semibold text-xl text-inherit hover:text-primary"
-                onClick={navigateToCocktail}
+              <a 
+                href={`/cocktails/${cocktail.id}`}
+                className="font-serif font-semibold text-xl text-inherit hover:text-primary transition-colors cursor-pointer"
               >
                 {cocktail.name}
-              </Button>
+              </a>
             </h3>
             <p className="text-sm text-muted-foreground">{barName}</p>
           </div>
