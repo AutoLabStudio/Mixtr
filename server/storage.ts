@@ -1069,7 +1069,9 @@ export class MemStorage implements IStorage {
       id,
       rating: mixologistData.rating !== undefined ? mixologistData.rating : 5.0,
       availability: mixologistData.availability !== undefined ? mixologistData.availability : true,
-      featured: mixologistData.featured !== undefined ? mixologistData.featured : false
+      featured: mixologistData.featured !== undefined ? mixologistData.featured : false,
+      maxGuests: mixologistData.maxGuests || 100,
+      specialties: typeof mixologistData.specialties === 'string' ? mixologistData.specialties : mixologistData.specialties.join(',')
     };
     this.mixologists.set(id, mixologist);
     return mixologist;
@@ -1109,12 +1111,13 @@ export class MemStorage implements IStorage {
   async createEventBooking(bookingData: InsertEventBooking): Promise<EventBooking> {
     const id = this.eventBookingId++;
     const createdAt = new Date();
-    // Ensure status field is defined
+    // Ensure status field is defined and specialRequests is not undefined
     const booking: EventBooking = { 
       ...bookingData, 
       id, 
       createdAt,
-      status: bookingData.status || 'pending'
+      status: bookingData.status || 'pending',
+      specialRequests: bookingData.specialRequests || null
     };
     this.eventBookings.set(id, booking);
     return booking;

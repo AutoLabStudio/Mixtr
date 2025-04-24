@@ -327,12 +327,16 @@ export const mixologists = pgTable("mixologists", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   bio: text("bio").notNull(),
-  specialties: text("specialties").array().notNull(),
+  specialties: text("specialties").notNull(), // Changed to text for easier string splitting
   imageUrl: text("image_url").notNull(),
   barId: integer("bar_id").notNull().references(() => bars.id, { onDelete: "cascade" }),
+  barName: text("bar_name").notNull(), // Added for display purposes
   rating: doublePrecision("rating").notNull().default(5.0),
   yearsOfExperience: integer("years_of_experience").notNull(),
   hourlyRate: doublePrecision("hourly_rate").notNull(),
+  maxGuests: integer("max_guests").notNull().default(100),
+  certifications: text("certifications").notNull(),
+  experience: text("experience").notNull(),
   availability: boolean("availability").default(true),
   featured: boolean("featured").default(false),
 });

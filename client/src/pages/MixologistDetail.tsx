@@ -124,7 +124,7 @@ export default function MixologistDetail() {
             
             <TabsContent value="specialties">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {mixologist.specialties.split(",").map((specialty, index) => (
+                {mixologist.specialties.split(",").map((specialty: string, index: number) => (
                   <Card key={index}>
                     <CardContent className="p-4">
                       <div className="flex items-center">
