@@ -485,12 +485,116 @@ const mockPromotions: Promotion[] = [
   }
 ];
 
+// Mock data for mixologists
+const mockMixologists: Mixologist[] = [
+  {
+    id: 1,
+    name: "Alex Thompson",
+    bio: "Award-winning mixologist with over 10 years of experience specializing in whiskey cocktails and molecular mixology. Has worked in top bars in New York, London, and Tokyo.",
+    specialties: ["Whiskey", "Molecular Mixology", "Classic Cocktails"],
+    imageUrl: "https://images.pexels.com/photos/3311574/pexels-photo-3311574.jpeg?auto=compress&cs=tinysrgb&w=600",
+    barId: 1,
+    rating: 4.9,
+    yearsOfExperience: 10,
+    hourlyRate: 150,
+    availability: true,
+    featured: true
+  },
+  {
+    id: 2,
+    name: "Maria Sanchez",
+    bio: "Passionate about creating herbal and botanical infusions. Maria brings a garden-to-glass approach to her craft with a focus on sustainability and seasonal ingredients.",
+    specialties: ["Botanical Cocktails", "Sustainable Mixology", "Herbal Infusions"],
+    imageUrl: "https://images.pexels.com/photos/3065025/pexels-photo-3065025.jpeg?auto=compress&cs=tinysrgb&w=600",
+    barId: 4,
+    rating: 4.8,
+    yearsOfExperience: 7,
+    hourlyRate: 125,
+    availability: true,
+    featured: true
+  },
+  {
+    id: 3,
+    name: "Daniel Kim",
+    bio: "Specializing in Asian-inspired cocktails and coffee-based drinks. Daniel's creative combinations and presentation style have earned him a dedicated following.",
+    specialties: ["Coffee Cocktails", "Asian-Inspired Drinks", "Theatrical Presentation"],
+    imageUrl: "https://images.pexels.com/photos/4252139/pexels-photo-4252139.jpeg?auto=compress&cs=tinysrgb&w=600",
+    barId: 2,
+    rating: 4.7,
+    yearsOfExperience: 5,
+    hourlyRate: 110,
+    availability: true,
+    featured: false
+  },
+  {
+    id: 4,
+    name: "Isabella Romano",
+    bio: "An expert in Italian aperitivo culture and techniques. Isabella brings authentic Italian traditions and flavors to every event with a focus on bitter-sweet balance.",
+    specialties: ["Italian Aperitivo", "Bitter-Sweet Cocktails", "Spritzers"],
+    imageUrl: "https://images.pexels.com/photos/4874259/pexels-photo-4874259.jpeg?auto=compress&cs=tinysrgb&w=600",
+    barId: 3,
+    rating: 4.9,
+    yearsOfExperience: 9,
+    hourlyRate: 140,
+    availability: true,
+    featured: true
+  }
+];
+
+// Mock data for event bookings
+const mockEventBookings: EventBooking[] = [
+  {
+    id: 1,
+    userId: "user123",
+    mixologistId: 1,
+    eventType: "Corporate",
+    eventDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    eventDuration: 4,
+    guestCount: 50,
+    location: "123 Corporate Plaza, San Francisco, CA",
+    specialRequests: "Focus on whiskey tasting and education. Need equipment for presentation.",
+    status: "approved",
+    totalPrice: 750,
+    createdAt: new Date()
+  },
+  {
+    id: 2,
+    userId: "user456",
+    mixologistId: 2,
+    eventType: "Wedding",
+    eventDate: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
+    eventDuration: 6,
+    guestCount: 120,
+    location: "Sunset Gardens, 456 Beach Road, Malibu, CA",
+    specialRequests: "Need signature cocktails for bride and groom. One should be floral and the other citrus-based.",
+    status: "pending",
+    totalPrice: 950,
+    createdAt: new Date()
+  },
+  {
+    id: 3,
+    userId: "user789",
+    mixologistId: 4,
+    eventType: "Birthday",
+    eventDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+    eventDuration: 3,
+    guestCount: 25,
+    location: "789 Lakeview Terrace, Chicago, IL",
+    specialRequests: "Italian-themed cocktail experience with spritz varieties.",
+    status: "approved",
+    totalPrice: 525,
+    createdAt: new Date()
+  }
+];
+
 export class MemStorage implements IStorage {
   private bars: Map<number, Bar>;
   private cocktails: Map<number, Cocktail>;
   private orders: Map<number, Order>;
   private specialOffers: Map<number, SpecialOffer>;
   private subscriptions: Map<number, Subscription>;
+  private mixologists: Map<number, Mixologist>;
+  private eventBookings: Map<number, EventBooking>;
   private mixologyClasses: Map<number, MixologyClass>;
   private classEnrollments: Map<number, ClassEnrollment>;
   private loyaltyPrograms: Map<string, LoyaltyProgram>;
@@ -521,6 +625,8 @@ export class MemStorage implements IStorage {
     this.users = new Map();
     this.partners = new Map();
     this.promotions = new Map();
+    this.mixologists = new Map();
+    this.eventBookings = new Map();
     
     this.orderId = 1;
     this.subscriptionId = 3;  // Starting after mock data
@@ -543,6 +649,8 @@ export class MemStorage implements IStorage {
     mockUsers.forEach(user => this.users.set(user.id, user));
     mockPartners.forEach(partner => this.partners.set(partner.id, partner));
     mockPromotions.forEach(promotion => this.promotions.set(promotion.id, promotion));
+    mockMixologists.forEach(mixologist => this.mixologists.set(mixologist.id, mixologist));
+    mockEventBookings.forEach(booking => this.eventBookings.set(booking.id, booking));
   }
   
   // Bar operations
