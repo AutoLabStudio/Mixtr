@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { ShoppingBag, Menu, X, User, LogIn, LogOut, Share2 } from "lucide-react";
+import { ShoppingBag, Menu, X, User, LogIn, LogOut, Share2, Calendar } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -16,6 +16,7 @@ export function Header() {
   const navLinks = [
     { name: "Featured", href: "/#featured" },
     { name: "Top Bars", href: "/#partner-bars" },
+    { name: "Book a Mixologist", href: "/mixologists", highlight: true },
     { name: "Subscriptions", href: "/subscriptions", highlight: true },
     { name: "Mixology Classes", href: "/mixology-classes", highlight: true },
     { name: "Loyalty Program", href: "/loyalty-program", highlight: true },
@@ -76,6 +77,15 @@ export function Header() {
                     Partner Portal
                   </Button>
                 )}
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  className="hidden md:flex items-center gap-1"
+                  onClick={() => setLocation("/my-bookings")}
+                >
+                  <Calendar className="h-4 w-4" />
+                  My Bookings
+                </Button>
                 <Button 
                   variant="ghost" 
                   size="sm"
@@ -171,6 +181,16 @@ export function Header() {
                       Partner Portal
                     </a>
                   )}
+                  <a
+                    className="flex items-center gap-1 px-3 py-2 text-base font-medium text-muted-foreground"
+                    onClick={() => {
+                      setLocation("/my-bookings");
+                      setIsMenuOpen(false);
+                    }}
+                  >
+                    <Calendar className="h-4 w-4" />
+                    My Bookings
+                  </a>
                   <a
                     className="flex items-center gap-1 px-3 py-2 text-base font-medium text-muted-foreground"
                     onClick={() => {
