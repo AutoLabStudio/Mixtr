@@ -1,228 +1,236 @@
 import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/use-auth";
+import { useLocation } from "wouter";
 import { Container } from "@/components/ui/container";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { BackButton } from "@/components/BackButton";
-import { Loader2, Calendar, Clock, Users, MapPin } from "lucide-react";
 import { format } from "date-fns";
-import { Link } from "wouter";
-
-interface BookingWithMixologist {
-  id: number;
-  createdAt: string;
-  status: string;
-  location: string;
-  mixologistId: number;
-  userId: string;
-  eventType: string;
-  eventDate: string;
-  eventDuration: number;
-  guestCount: number;
-  totalPrice: number;
-  specialRequests: string | null;
-  mixologist: {
-    id: number;
-    name: string;
-    imageUrl: string;
-    barId: number;
-    barName: string;
-  };
-}
-
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case "pending":
-      return "bg-yellow-500";
-    case "approved":
-      return "bg-green-500";
-    case "completed":
-      return "bg-blue-500";
-    case "cancelled":
-      return "bg-red-500";
-    default:
-      return "bg-gray-500";
-  }
-};
-
-const getEventTypeLabel = (type: string) => {
-  switch (type) {
-    case "corporate":
-      return "Corporate Event";
-    case "birthday":
-      return "Birthday Party";
-    case "wedding":
-      return "Wedding";
-    case "cocktail":
-      return "Cocktail Party";
-    default:
-      return "Event";
-  }
-};
+import { ChevronRight, Calendar, MapPin, Clock, Users, Info } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { EventBooking, Mixologist } from "@shared/schema";
 
 export default function MyBookings() {
-  const { user, isLoading: isAuthLoading } = useAuth();
-
-  const { data: bookings, isLoading, error } = useQuery<BookingWithMixologist[]>({
-    queryKey: [`/api/user/${user?.id}/event-bookings`],
+  const [_, setLocation] = useLocation();
+  const { user } = useAuth();
+  
+  // Get user's event bookings
+  const { data: bookings, isLoading: bookingsLoading } = useQuery<EventBooking[]>({
+    queryKey: ['/api/event-bookings/user'],
     enabled: !!user,
   });
-
-  if (isAuthLoading) {
+  
+  // Get mixologists to display with bookings
+  const { data: mixologists, isLoading: mixologistsLoading } = useQuery<Mixologist[]>({
+    queryKey: ['/api/mixologists'],
+  });
+  
+  const isLoading = bookingsLoading || mixologistsLoading;
+  
+  // Helper function to find mixologist by ID
+  const findMixologist = (id: number) => {
+    return mixologists?.find(m => m.id === id);
+  };
+  
+  // Function to get status badge variant
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'approved':
+        return 'success';
+      case 'pending':
+        return 'warning';
+      case 'cancelled':
+        return 'destructive';
+      case 'completed':
+        return 'default';
+      default:
+        return 'outline';
+    }
+  };
+  
+  // Function to render badge status
+  const renderStatusBadge = (status: string) => {
+    const variant = getStatusBadgeVariant(status);
+    
+    const classes = {
+      success: "bg-green-100 text-green-800 hover:bg-green-200",
+      warning: "bg-yellow-100 text-yellow-800 hover:bg-yellow-200",
+      destructive: "bg-red-100 text-red-800 hover:bg-red-200",
+      default: "bg-blue-100 text-blue-800 hover:bg-blue-200",
+      outline: "border border-border"
+    };
+    
     return (
-      <Container className="py-8">
-        <div className="flex justify-center items-center py-20">
-          <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        </div>
-      </Container>
+      <Badge variant="outline" className={classes[variant as keyof typeof classes]}>
+        {status.charAt(0).toUpperCase() + status.slice(1)}
+      </Badge>
     );
-  }
-
+  };
+  
   if (!user) {
     return (
-      <Container className="py-8">
-        <BackButton />
-        <div className="text-center py-20">
+      <div className="p-8 pt-32 flex justify-center">
+        <div className="text-center">
           <h2 className="text-2xl font-bold mb-4">Authentication Required</h2>
-          <p className="mb-6">Please log in to view your mixologist bookings.</p>
-          <Button asChild>
-            <Link to="/auth">Go to Login</Link>
+          <p className="text-muted-foreground mb-8">
+            Please log in to view your bookings.
+          </p>
+          <Button onClick={() => setLocation("/auth")}>
+            Go to Login
           </Button>
         </div>
-      </Container>
+      </div>
     );
   }
-
-  const upcomingBookings = bookings?.filter(b => b.status !== "completed" && b.status !== "cancelled") || [];
-  const pastBookings = bookings?.filter(b => b.status === "completed" || b.status === "cancelled") || [];
-
-  return (
-    <Container className="py-8">
-      <BackButton />
-      <h1 className="text-3xl font-bold mb-2">My Mixologist Bookings</h1>
-      <p className="text-muted-foreground mb-8">
-        View and manage your mixologist event bookings
-      </p>
-
-      {isLoading ? (
-        <div className="flex justify-center items-center py-20">
-          <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        </div>
-      ) : error ? (
-        <div className="text-center py-10">
-          <p className="text-red-500">Failed to load your bookings. Please try again later.</p>
-        </div>
-      ) : bookings?.length === 0 ? (
-        <div className="text-center py-10">
-          <h2 className="text-xl font-semibold mb-2">No bookings found</h2>
-          <p className="text-muted-foreground mb-6">You haven't made any mixologist bookings yet.</p>
-          <Button asChild>
-            <Link to="/mixologists">Browse Mixologists</Link>
-          </Button>
-        </div>
-      ) : (
-        <div className="space-y-10">
-          {upcomingBookings.length > 0 && (
-            <div>
-              <h2 className="text-xl font-semibold mb-4">Upcoming Bookings</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {upcomingBookings.map((booking) => (
-                  <BookingCard key={booking.id} booking={booking} />
-                ))}
+  
+  if (isLoading) {
+    return (
+      <div className="p-8 pt-32 flex justify-center">
+        <div className="animate-pulse w-full max-w-4xl">
+          <div className="h-10 bg-muted rounded w-1/3 mb-8"></div>
+          <div className="space-y-6">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="border rounded-lg p-6">
+                <div className="flex justify-between items-start mb-4">
+                  <div className="space-y-2">
+                    <div className="h-6 bg-muted rounded w-48"></div>
+                    <div className="h-4 bg-muted rounded w-32"></div>
+                  </div>
+                  <div className="h-6 bg-muted rounded w-24"></div>
+                </div>
+                <div className="h-20 bg-muted rounded mb-4"></div>
+                <div className="h-10 bg-muted rounded w-32 ml-auto"></div>
               </div>
-            </div>
-          )}
-
-          {pastBookings.length > 0 && (
-            <div>
-              <h2 className="text-xl font-semibold mb-4">Past Bookings</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {pastBookings.map((booking) => (
-                  <BookingCard key={booking.id} booking={booking} />
-                ))}
-              </div>
-            </div>
-          )}
+            ))}
+          </div>
         </div>
-      )}
-    </Container>
-  );
-}
-
-function BookingCard({ booking }: { booking: BookingWithMixologist }) {
-  const eventDate = new Date(booking.eventDate);
-  const statusColor = getStatusColor(booking.status);
-  const eventTypeLabel = getEventTypeLabel(booking.eventType);
+      </div>
+    );
+  }
   
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <div className="flex justify-between items-start">
-          <CardTitle>{eventTypeLabel}</CardTitle>
-          <Badge className={statusColor}>{booking.status}</Badge>
+    <div className="pt-28 pb-16">
+      <Container className="max-w-4xl">
+        <div className="mb-10">
+          <h1 className="text-3xl font-bold mb-2">My Event Bookings</h1>
+          <p className="text-muted-foreground">
+            View and manage your mixologist bookings for events
+          </p>
         </div>
-        <CardDescription>
-          Booking #{booking.id} • {format(new Date(booking.createdAt), "MMM d, yyyy")}
-        </CardDescription>
-      </CardHeader>
-      
-      <CardContent>
-        <div className="flex items-center mb-4">
-          <img 
-            src={booking.mixologist.imageUrl}
-            alt={booking.mixologist.name}
-            className="w-12 h-12 rounded-full object-cover mr-3"
-          />
-          <div>
-            <h3 className="font-medium">{booking.mixologist.name}</h3>
-            <p className="text-sm text-muted-foreground">
-              From {booking.mixologist.barName}
+        
+        {(!bookings || bookings.length === 0) ? (
+          <div className="text-center py-12 border rounded-lg">
+            <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h2 className="text-xl font-medium mb-2">No Bookings Found</h2>
+            <p className="text-muted-foreground mb-6">
+              You haven't made any mixologist bookings yet.
             </p>
+            <Button onClick={() => setLocation("/mixologists")}>
+              Find a Mixologist
+            </Button>
           </div>
-        </div>
-        
-        <Separator className="mb-4" />
-        
-        <div className="space-y-2 text-sm">
-          <div className="flex items-center">
-            <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
-            <span>{format(eventDate, "EEEE, MMMM d, yyyy")}</span>
-          </div>
-          <div className="flex items-center">
-            <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
-            <span>{booking.eventDuration} hours</span>
-          </div>
-          <div className="flex items-center">
-            <Users className="h-4 w-4 mr-2 text-muted-foreground" />
-            <span>{booking.guestCount} guests</span>
-          </div>
-          <div className="flex items-start">
-            <MapPin className="h-4 w-4 mr-2 text-muted-foreground mt-1" />
-            <span>{booking.location}</span>
-          </div>
-        </div>
-        
-        {booking.specialRequests && (
-          <div className="mt-4">
-            <p className="text-sm font-medium mb-1">Special Requests:</p>
-            <p className="text-sm text-muted-foreground">{booking.specialRequests}</p>
+        ) : (
+          <div className="space-y-6">
+            {bookings.map((booking) => {
+              const mixologist = findMixologist(booking.mixologistId);
+              const eventDate = booking.eventDate instanceof Date 
+                ? booking.eventDate 
+                : new Date(booking.eventDate);
+              
+              return (
+                <Card key={booking.id}>
+                  <CardHeader className="pb-2">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <CardTitle className="text-xl">{booking.eventType} Event</CardTitle>
+                        <CardDescription className="mt-1">
+                          {format(eventDate, "PPP")} ({format(eventDate, "p")})
+                        </CardDescription>
+                      </div>
+                      {renderStatusBadge(booking.status)}
+                    </div>
+                  </CardHeader>
+                  
+                  <CardContent className="pb-4">
+                    <div className="flex items-start gap-4 mb-4">
+                      {mixologist && (
+                        <div className="w-16 h-16 rounded-full overflow-hidden flex-shrink-0">
+                          <img 
+                            src={mixologist.imageUrl} 
+                            alt={mixologist.name} 
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      )}
+                      
+                      <div className="flex-1">
+                        <h3 className="font-medium text-lg mb-1">
+                          {mixologist ? mixologist.name : `Mixologist #${booking.mixologistId}`}
+                        </h3>
+                        
+                        {mixologist && (
+                          <p className="text-muted-foreground text-sm">
+                            {mixologist.barName}
+                          </p>
+                        )}
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1 mt-3">
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Clock className="h-4 w-4" />
+                            <span>{booking.eventDuration} hours</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Users className="h-4 w-4" />
+                            <span>{booking.guestCount} guests</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground col-span-2 mt-1">
+                            <MapPin className="h-4 w-4" />
+                            <span className="truncate">{booking.location}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {booking.specialRequests && (
+                      <div className="mt-4">
+                        <Separator className="mb-4" />
+                        <div className="flex items-start gap-2">
+                          <Info className="h-4 w-4 text-muted-foreground mt-0.5" />
+                          <div>
+                            <h4 className="font-medium text-sm mb-1">Special Requests</h4>
+                            <p className="text-sm text-muted-foreground">
+                              {booking.specialRequests}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                  
+                  <CardFooter className="flex justify-between items-center pt-0">
+                    <div className="font-medium">
+                      Total: ${booking.totalPrice}
+                    </div>
+                    
+                    {booking.status === 'approved' && (
+                      <Button variant="outline" onClick={() => setLocation(`/mixologists/${booking.mixologistId}`)}>
+                        View Mixologist Profile
+                        <ChevronRight className="h-4 w-4 ml-1" />
+                      </Button>
+                    )}
+                    
+                    {booking.status === 'pending' && new Date() < eventDate && (
+                      <Button variant="outline" className="text-red-500 border-red-200 hover:bg-red-50">
+                        Cancel Request
+                      </Button>
+                    )}
+                  </CardFooter>
+                </Card>
+              );
+            })}
           </div>
         )}
-      </CardContent>
-      
-      <CardFooter className="flex justify-between border-t pt-4">
-        <div>
-          <p className="text-sm text-muted-foreground">Total Price</p>
-          <p className="font-bold">${booking.totalPrice}</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" asChild>
-            <Link to={`/mixologists/${booking.mixologistId}`}>View Mixologist</Link>
-          </Button>
-        </div>
-      </CardFooter>
-    </Card>
+      </Container>
+    </div>
   );
 }

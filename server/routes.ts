@@ -531,6 +531,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(enhancedBookings);
   });
   
+  // Get current authenticated user's event bookings
+  app.get("/api/event-bookings/user", async (req: Request, res: Response) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
+    const userId = req.user!.id.toString();
+    const bookings = await storage.getEventBookingsByUser(userId);
+    
+    // Enhance with mixologist details
+    const enhancedBookings = await Promise.all(
+      bookings.map(async (booking) => {
+        const mixologist = await storage.getMixologist(booking.mixologistId);
+        return {
+          ...booking,
+          mixologist,
+        };
+      })
+    );
+    
+    res.json(enhancedBookings);
+  });
+  
   // Get mixologist's event bookings
   app.get("/api/mixologists/:id/event-bookings", async (req: Request, res: Response) => {
     const mixologistId = parseInt(req.params.id);
