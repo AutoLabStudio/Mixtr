@@ -1,4 +1,3 @@
-import React from "react";
 import { cn } from "@/lib/utils";
 
 interface ContainerProps {
@@ -8,7 +7,7 @@ interface ContainerProps {
 
 export function Container({ children, className }: ContainerProps) {
   return (
-    <div className={cn("container mx-auto px-4 md:px-6", className)}>
+    <div className={cn("max-w-7xl mx-auto px-4 sm:px-6 lg:px-8", className)}>
       {children}
     </div>
   );

@@ -1,78 +1,128 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "wouter";
+import { useLocation } from "wouter";
 import { Mixologist } from "@shared/schema";
 import { Container } from "@/components/ui/container";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { BackButton } from "@/components/BackButton";
+import { Separator } from "@/components/ui/separator";
 import { PageTitle } from "@/components/PageTitle";
-import { Loader2, Star, Users } from "lucide-react";
+import { Star, Clock, DollarSign, UserPlus } from "lucide-react";
 
 export default function Mixologists() {
-  const { data: mixologists, isLoading, error } = useQuery<Mixologist[]>({
-    queryKey: ["/api/mixologists"],
+  const [_, setLocation] = useLocation();
+  
+  const { data: mixologists, isLoading } = useQuery<Mixologist[]>({
+    queryKey: ['/api/mixologists'],
   });
 
-  return (
-    <Container className="py-8">
-      <BackButton />
-      <PageTitle>Book a Mixologist</PageTitle>
-      <p className="text-muted-foreground mb-8">
-        Elevate your event with one of our professional mixologists. Perfect for corporate events, 
-        private parties, birthdays, or any special gathering that deserves exceptional drinks.
-      </p>
+  const goToMixologistDetail = (id: number) => {
+    setLocation(`/mixologists/${id}`);
+  };
 
-      {isLoading ? (
-        <div className="flex justify-center items-center py-20">
-          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+  if (isLoading) {
+    return (
+      <div className="p-8 pt-32 flex justify-center">
+        <div className="animate-pulse w-full max-w-7xl">
+          <div className="h-10 bg-muted rounded w-1/4 mb-8"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="border rounded-lg overflow-hidden">
+                <div className="h-48 bg-muted"></div>
+                <div className="p-5 space-y-2">
+                  <div className="h-6 bg-muted rounded w-3/4"></div>
+                  <div className="h-4 bg-muted rounded w-1/2"></div>
+                  <div className="h-12 bg-muted rounded mt-4"></div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-      ) : error ? (
-        <div className="text-center py-20">
-          <p className="text-red-500">Failed to load mixologists. Please try again later.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="pt-28 pb-16">
+      <Container>
+        <div className="text-center mb-12">
+          <PageTitle className="mb-3">Book a Professional Mixologist</PageTitle>
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+            Elevate your event with a professional mixologist from one of our partner bars. 
+            Create memorable experiences with custom cocktail menus and expert service.
+          </p>
         </div>
-      ) : (
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {mixologists?.map((mixologist) => (
-            <Card key={mixologist.id} className="overflow-hidden flex flex-col h-full">
-              <div className="relative h-64 bg-muted">
+            <Card key={mixologist.id} className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
+              <div className="h-56 overflow-hidden relative">
                 <img 
                   src={mixologist.imageUrl} 
-                  alt={mixologist.name} 
-                  className="absolute inset-0 w-full h-full object-cover"
+                  alt={mixologist.name}
+                  className="w-full h-full object-cover object-center transition-transform duration-500 hover:scale-105"
                 />
                 {mixologist.featured && (
-                  <Badge className="absolute top-2 right-2 bg-primary">Featured</Badge>
+                  <div className="absolute top-4 right-4">
+                    <Badge variant="destructive" className="bg-primary hover:bg-primary/90">Featured</Badge>
+                  </div>
                 )}
               </div>
-              <CardHeader>
-                <CardTitle className="flex justify-between items-start">
-                  <span>{mixologist.name}</span>
-                  <div className="flex items-center">
-                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
-                    <span>{mixologist.rating.toFixed(1)}</span>
+              
+              <CardHeader className="pb-2">
+                <div className="flex justify-between items-start">
+                  <CardTitle className="text-xl font-bold">{mixologist.name}</CardTitle>
+                  <div className="flex items-center gap-1">
+                    <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                    <span className="font-medium">{mixologist.rating}</span>
                   </div>
-                </CardTitle>
-                <CardDescription>
-                  Bartender at {mixologist.barName}
-                </CardDescription>
+                </div>
+                <CardDescription className="text-sm">{mixologist.barName}</CardDescription>
               </CardHeader>
-              <CardContent className="flex-grow">
-                <p className="text-sm">{mixologist.bio}</p>
-                <div className="flex items-center mt-4 text-sm text-muted-foreground">
-                  <Users className="h-4 w-4 mr-1" />
-                  <span>Specializes in events up to {mixologist.maxGuests} guests</span>
+              
+              <CardContent className="pb-4">
+                <div className="flex gap-4 mb-4">
+                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                    <Clock className="w-4 h-4" />
+                    <span>{mixologist.yearsOfExperience} years</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                    <DollarSign className="w-4 h-4" />
+                    <span>${mixologist.hourlyRate}/hr</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                    <UserPlus className="w-4 h-4" />
+                    <span>Up to {mixologist.maxGuests}</span>
+                  </div>
+                </div>
+                
+                <Separator className="mb-4" />
+                
+                <p className="text-sm text-muted-foreground line-clamp-2">
+                  {mixologist.bio}
+                </p>
+                
+                <div className="mt-3 flex flex-wrap gap-1">
+                  {mixologist.specialties.split(',').map((specialty, index) => (
+                    <Badge key={index} variant="outline" className="bg-accent/50 hover:bg-accent text-accent-foreground">
+                      {specialty.trim()}
+                    </Badge>
+                  ))}
                 </div>
               </CardContent>
-              <CardFooter>
-                <Link to={`/mixologists/${mixologist.id}`}>
-                  <Button className="w-full">View Profile & Book</Button>
-                </Link>
+              
+              <CardFooter className="pt-0">
+                <Button 
+                  className="w-full" 
+                  onClick={() => goToMixologistDetail(mixologist.id)}
+                >
+                  View Profile & Book
+                </Button>
               </CardFooter>
             </Card>
           ))}
         </div>
-      )}
-    </Container>
+      </Container>
+    </div>
   );
 }
