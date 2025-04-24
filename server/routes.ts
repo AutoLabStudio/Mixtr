@@ -435,6 +435,149 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(400).json({ message: "Failed to redeem reward", error });
     }
   });
+  
+  // ===== MIXOLOGIST BOOKING ROUTES =====
+  
+  // Get all mixologists
+  app.get("/api/mixologists", async (req: Request, res: Response) => {
+    const mixologists = await storage.getMixologists();
+    res.json(mixologists);
+  });
+  
+  // Get featured mixologists
+  app.get("/api/mixologists/featured", async (req: Request, res: Response) => {
+    const mixologists = await storage.getFeaturedMixologists();
+    res.json(mixologists);
+  });
+  
+  // Get a specific mixologist
+  app.get("/api/mixologists/:id", async (req: Request, res: Response) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ message: "Invalid mixologist ID" });
+    }
+    
+    const mixologist = await storage.getMixologist(id);
+    if (!mixologist) {
+      return res.status(404).json({ message: "Mixologist not found" });
+    }
+    
+    // Get the bar information for this mixologist
+    const bar = await storage.getBar(mixologist.barId);
+    
+    res.json({
+      ...mixologist,
+      bar,
+    });
+  });
+  
+  // Get mixologists by bar
+  app.get("/api/bars/:barId/mixologists", async (req: Request, res: Response) => {
+    const barId = parseInt(req.params.barId);
+    if (isNaN(barId)) {
+      return res.status(400).json({ message: "Invalid bar ID" });
+    }
+    
+    const bar = await storage.getBar(barId);
+    if (!bar) {
+      return res.status(404).json({ message: "Bar not found" });
+    }
+    
+    const mixologists = await storage.getMixologistsByBar(barId);
+    res.json(mixologists);
+  });
+  
+  // Create an event booking
+  app.post("/api/event-bookings", async (req: Request, res: Response) => {
+    try {
+      // Parse and validate the booking data
+      const bookingData = req.body;
+      
+      // Check if mixologist exists
+      const mixologist = await storage.getMixologist(bookingData.mixologistId);
+      if (!mixologist) {
+        return res.status(404).json({ message: "Mixologist not found" });
+      }
+      
+      // Check if mixologist is available
+      if (!mixologist.availability) {
+        return res.status(400).json({ message: "Mixologist is not available for booking" });
+      }
+      
+      // Create the booking
+      const booking = await storage.createEventBooking(bookingData);
+      res.status(201).json(booking);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid booking data", error });
+    }
+  });
+  
+  // Get user's event bookings
+  app.get("/api/user/:userId/event-bookings", async (req: Request, res: Response) => {
+    const userId = req.params.userId;
+    const bookings = await storage.getEventBookingsByUser(userId);
+    
+    // Enhance with mixologist details
+    const enhancedBookings = await Promise.all(
+      bookings.map(async (booking) => {
+        const mixologist = await storage.getMixologist(booking.mixologistId);
+        return {
+          ...booking,
+          mixologist,
+        };
+      })
+    );
+    
+    res.json(enhancedBookings);
+  });
+  
+  // Get mixologist's event bookings
+  app.get("/api/mixologists/:id/event-bookings", async (req: Request, res: Response) => {
+    const mixologistId = parseInt(req.params.id);
+    if (isNaN(mixologistId)) {
+      return res.status(400).json({ message: "Invalid mixologist ID" });
+    }
+    
+    const mixologist = await storage.getMixologist(mixologistId);
+    if (!mixologist) {
+      return res.status(404).json({ message: "Mixologist not found" });
+    }
+    
+    const bookings = await storage.getEventBookingsByMixologist(mixologistId);
+    res.json(bookings);
+  });
+  
+  // Update event booking status
+  app.patch("/api/event-bookings/:id/status", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid booking ID" });
+      }
+      
+      const { status } = req.body;
+      if (!status) {
+        return res.status(400).json({ message: "Status is required" });
+      }
+      
+      // Validate status
+      const validStatuses = ["pending", "approved", "completed", "cancelled"];
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({ 
+          message: "Invalid status, must be one of: pending, approved, completed, cancelled" 
+        });
+      }
+      
+      const updatedBooking = await storage.updateEventBookingStatus(id, status);
+      if (!updatedBooking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+      
+      res.json(updatedBooking);
+    } catch (error) {
+      res.status(400).json({ message: "Failed to update booking status", error });
+    }
+  });
 
   const httpServer = createServer(app);
   

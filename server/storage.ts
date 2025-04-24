@@ -611,6 +611,8 @@ export class MemStorage implements IStorage {
   private userId: number;
   private partnerId: number;
   private promotionId: number;
+  private mixologistId: number;
+  private eventBookingId: number;
   
   constructor() {
     this.bars = new Map();
@@ -636,6 +638,8 @@ export class MemStorage implements IStorage {
     this.userId = 4;         // Starting after mock data
     this.partnerId = 3;      // Starting after mock data
     this.promotionId = 3;    // Starting after mock data
+    this.mixologistId = 5;   // Starting after mock data
+    this.eventBookingId = 4; // Starting after mock data
     
     // Initialize with mock data
     mockBars.forEach(bar => this.bars.set(bar.id, bar));
@@ -1054,6 +1058,92 @@ export class MemStorage implements IStorage {
       return true;
     }
     return false;
+  }
+
+  // Mixologist operations
+  async createMixologist(mixologistData: InsertMixologist): Promise<Mixologist> {
+    const id = this.mixologistId++;
+    // Ensure all required fields are defined
+    const mixologist: Mixologist = { 
+      ...mixologistData, 
+      id,
+      rating: mixologistData.rating !== undefined ? mixologistData.rating : 5.0,
+      availability: mixologistData.availability !== undefined ? mixologistData.availability : true,
+      featured: mixologistData.featured !== undefined ? mixologistData.featured : false
+    };
+    this.mixologists.set(id, mixologist);
+    return mixologist;
+  }
+  
+  async getMixologist(id: number): Promise<Mixologist | undefined> {
+    return this.mixologists.get(id);
+  }
+  
+  async getMixologists(): Promise<Mixologist[]> {
+    return Array.from(this.mixologists.values());
+  }
+  
+  async getMixologistsByBar(barId: number): Promise<Mixologist[]> {
+    return Array.from(this.mixologists.values()).filter(
+      mixologist => mixologist.barId === barId
+    );
+  }
+  
+  async getFeaturedMixologists(): Promise<Mixologist[]> {
+    return Array.from(this.mixologists.values()).filter(
+      mixologist => mixologist.featured && mixologist.availability
+    );
+  }
+  
+  async updateMixologist(id: number, data: Partial<InsertMixologist>): Promise<Mixologist | undefined> {
+    const mixologist = this.mixologists.get(id);
+    if (mixologist) {
+      const updatedMixologist = { ...mixologist, ...data };
+      this.mixologists.set(id, updatedMixologist);
+      return updatedMixologist;
+    }
+    return undefined;
+  }
+  
+  // Event Booking operations
+  async createEventBooking(bookingData: InsertEventBooking): Promise<EventBooking> {
+    const id = this.eventBookingId++;
+    const createdAt = new Date();
+    // Ensure status field is defined
+    const booking: EventBooking = { 
+      ...bookingData, 
+      id, 
+      createdAt,
+      status: bookingData.status || 'pending'
+    };
+    this.eventBookings.set(id, booking);
+    return booking;
+  }
+  
+  async getEventBooking(id: number): Promise<EventBooking | undefined> {
+    return this.eventBookings.get(id);
+  }
+  
+  async getEventBookingsByUser(userId: string): Promise<EventBooking[]> {
+    return Array.from(this.eventBookings.values()).filter(
+      booking => booking.userId === userId
+    );
+  }
+  
+  async getEventBookingsByMixologist(mixologistId: number): Promise<EventBooking[]> {
+    return Array.from(this.eventBookings.values()).filter(
+      booking => booking.mixologistId === mixologistId
+    );
+  }
+  
+  async updateEventBookingStatus(id: number, status: string): Promise<EventBooking | undefined> {
+    const booking = this.eventBookings.get(id);
+    if (booking) {
+      const updatedBooking = { ...booking, status };
+      this.eventBookings.set(id, updatedBooking);
+      return updatedBooking;
+    }
+    return undefined;
   }
 }
 
