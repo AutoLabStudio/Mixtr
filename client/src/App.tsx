@@ -18,6 +18,11 @@ import Social from "@/pages/Social";
 import AuthPage from "@/pages/AuthPage";
 import PartnerAuth from "@/pages/PartnerAuth";
 import PartnerDashboard from "@/pages/PartnerDashboard";
+// Import new pages for mixologist booking
+import Mixologists from "@/pages/Mixologists";
+import MixologistDetail from "@/pages/MixologistDetail";
+import EventBooking from "@/pages/EventBooking";
+import MyBookings from "@/pages/MyBookings";
 import { CartProvider } from "@/context/CartContext";
 import { AuthProvider } from "@/hooks/use-auth";
 import { Header } from "@/components/Header";
@@ -38,6 +43,11 @@ function Router() {
       <Route path="/mixology-classes" component={MixologyClasses} />
       <Route path="/loyalty-program" component={LoyaltyProgram} />
       <Route path="/social" component={Social} />
+      {/* Mixologist Booking Routes */}
+      <Route path="/mixologists" component={Mixologists} />
+      <Route path="/mixologists/:id" component={MixologistDetail} />
+      <Route path="/event-booking/:mixologistId" component={EventBooking} />
+      <Route path="/my-bookings" component={MyBookings} />
       {/* Auth Routes */}
       <Route path="/auth" component={AuthPage} />
       {/* Partner Routes */}
