@@ -276,6 +276,7 @@ export const barsRelations = relations(bars, ({ many }) => ({
   mixologyClasses: many(mixologyClasses),
   partners: many(partners),
   promotions: many(promotions),
+  mixologists: many(mixologists),
 }));
 
 export const cocktailsRelations = relations(cocktails, ({ one }) => ({
@@ -318,5 +319,69 @@ export const promotionsRelations = relations(promotions, ({ one }) => ({
   bar: one(bars, {
     fields: [promotions.barId],
     references: [bars.id],
+  }),
+}));
+
+// Mixologist model
+export const mixologists = pgTable("mixologists", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  bio: text("bio").notNull(),
+  specialties: text("specialties").array().notNull(),
+  imageUrl: text("image_url").notNull(),
+  barId: integer("bar_id").notNull().references(() => bars.id, { onDelete: "cascade" }),
+  rating: doublePrecision("rating").notNull().default(5.0),
+  yearsOfExperience: integer("years_of_experience").notNull(),
+  hourlyRate: doublePrecision("hourly_rate").notNull(),
+  availability: boolean("availability").default(true),
+  featured: boolean("featured").default(false),
+});
+
+// Event Booking model
+export const eventBookings = pgTable("event_bookings", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull(), 
+  mixologistId: integer("mixologist_id").notNull().references(() => mixologists.id, { onDelete: "cascade" }),
+  eventType: text("event_type").notNull(), // corporate, birthday, wedding, etc.
+  eventDate: timestamp("event_date").notNull(),
+  eventDuration: integer("event_duration").notNull(), // in hours
+  guestCount: integer("guest_count").notNull(),
+  location: text("location").notNull(),
+  specialRequests: text("special_requests"),
+  status: text("status").notNull().default("pending"), // pending, approved, completed, cancelled
+  totalPrice: doublePrecision("total_price").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Insert schemas for new models
+export const insertMixologistSchema = createInsertSchema(mixologists).omit({
+  id: true,
+});
+
+export const insertEventBookingSchema = createInsertSchema(eventBookings).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Types for new models
+export type Mixologist = typeof mixologists.$inferSelect;
+export type InsertMixologist = z.infer<typeof insertMixologistSchema>;
+
+export type EventBooking = typeof eventBookings.$inferSelect;
+export type InsertEventBooking = z.infer<typeof insertEventBookingSchema>;
+
+// Relations for new models
+export const mixologistsRelations = relations(mixologists, ({ one, many }) => ({
+  bar: one(bars, {
+    fields: [mixologists.barId],
+    references: [bars.id],
+  }),
+  eventBookings: many(eventBookings),
+}));
+
+export const eventBookingsRelations = relations(eventBookings, ({ one }) => ({
+  mixologist: one(mixologists, {
+    fields: [eventBookings.mixologistId],
+    references: [mixologists.id],
   }),
 }));

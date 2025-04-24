@@ -10,7 +10,9 @@ import {
   LoyaltyReward, InsertLoyaltyReward,
   User, InsertUser,
   Partner, InsertPartner,
-  Promotion, InsertPromotion
+  Promotion, InsertPromotion,
+  Mixologist, InsertMixologist,
+  EventBooking, InsertEventBooking
 } from "@shared/schema";
 
 export interface IStorage {
@@ -86,6 +88,21 @@ export interface IStorage {
   getActivePromotions(): Promise<Promotion[]>;
   updatePromotion(id: number, data: Partial<InsertPromotion>): Promise<Promotion | undefined>;
   deletePromotion(id: number): Promise<boolean>;
+  
+  // Mixologist operations
+  createMixologist(mixologist: InsertMixologist): Promise<Mixologist>;
+  getMixologist(id: number): Promise<Mixologist | undefined>;
+  getMixologists(): Promise<Mixologist[]>;
+  getMixologistsByBar(barId: number): Promise<Mixologist[]>;
+  getFeaturedMixologists(): Promise<Mixologist[]>;
+  updateMixologist(id: number, data: Partial<InsertMixologist>): Promise<Mixologist | undefined>;
+  
+  // Event Booking operations
+  createEventBooking(booking: InsertEventBooking): Promise<EventBooking>;
+  getEventBooking(id: number): Promise<EventBooking | undefined>;
+  getEventBookingsByUser(userId: string): Promise<EventBooking[]>;
+  getEventBookingsByMixologist(mixologistId: number): Promise<EventBooking[]>;
+  updateEventBookingStatus(id: number, status: string): Promise<EventBooking | undefined>;
 }
 
 // Mock data for bars
