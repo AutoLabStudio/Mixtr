@@ -10,7 +10,7 @@ if (!process.env.DATABASE_URL) {
 }
 
 // Create a PostgreSQL connection pool
-let pool: Pool | undefined;
+let pool: pg.Pool | undefined;
 try {
   if (process.env.DATABASE_URL) {
     pool = new Pool({ connectionString: process.env.DATABASE_URL });
