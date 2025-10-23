@@ -12,15 +12,22 @@ import { Subscription } from "@shared/schema";
 import { formatCurrency, generateUserId } from "@/lib/utils";
 import { useCart } from "@/context/CartContext";
 
+type SubscriptionWithPreferences = Subscription & {
+  preferences: {
+    spirits: string[];
+    flavors: string[];
+  };
+};
+
 export default function SubscriptionsPage() {
   const { toast } = useToast();
   const userId = generateUserId();
-  const { data: subscriptions, isLoading } = useQuery({
+  const { data: subscriptions, isLoading } = useQuery<SubscriptionWithPreferences[]>({
     queryKey: ['/api/subscriptions'],
     queryFn: getQueryFn({ on401: "returnNull" }),
   });
 
-  const { data: userSubscriptions } = useQuery({
+  const { data: userSubscriptions } = useQuery<SubscriptionWithPreferences[]>({
     queryKey: [`/api/user/${userId}/subscriptions`],
     queryFn: getQueryFn({ on401: "returnNull" }),
   });
@@ -45,7 +52,7 @@ export default function SubscriptionsPage() {
     );
   };
 
-  const handleSubscribe = async (subscription: Subscription) => {
+  const handleSubscribe = async (subscription: SubscriptionWithPreferences) => {
     try {
       // Create custom subscription based on user preferences
       const customSubscription = {
@@ -119,7 +126,7 @@ export default function SubscriptionsPage() {
         <div className="mb-10">
           <h2 className="text-2xl font-semibold mb-4">Your Active Subscriptions</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {userSubscriptions.map((sub: Subscription) => (
+            {userSubscriptions.map((sub) => (
               <Card key={sub.id} className="overflow-hidden flex flex-col h-full border-primary/20">
                 <div className="h-48 bg-gray-100 dark:bg-gray-800 relative">
                   <img 
@@ -240,7 +247,7 @@ export default function SubscriptionsPage() {
 
       <h2 className="text-2xl font-semibold mb-4">Available Subscription Plans</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {subscriptions && subscriptions.map((subscription: Subscription) => (
+        {subscriptions && subscriptions.map((subscription) => (
           <Card key={subscription.id} className="overflow-hidden flex flex-col h-full">
             <div className="h-48 relative">
               <img 

@@ -11,13 +11,16 @@ import { useState } from "react";
 import { useCart } from "@/context/CartContext";
 import { formatCurrency } from "@/lib/utils";
 import { Helmet } from "react-helmet";
+import type { Cocktail as CocktailType, Bar } from "@shared/schema";
+
+type CocktailWithBar = CocktailType & { bar: Bar };
 
 export default function Cocktail() {
   const { id } = useParams();
   const [quantity, setQuantity] = useState(1);
   const { addToCart } = useCart();
-  
-  const { data: cocktail, isLoading, error } = useQuery({
+
+  const { data: cocktail, isLoading, error } = useQuery<CocktailWithBar>({
     queryKey: [`/api/cocktails/${id}`],
   });
   

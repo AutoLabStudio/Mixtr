@@ -1080,14 +1080,23 @@ export class MemStorage implements IStorage {
   async createMixologist(mixologistData: InsertMixologist): Promise<Mixologist> {
     const id = this.mixologistId++;
     // Ensure all required fields are defined
-    const mixologist: Mixologist = { 
-      ...mixologistData, 
+    let specialties: string;
+    if (typeof mixologistData.specialties === 'string') {
+      specialties = mixologistData.specialties;
+    } else if (Array.isArray(mixologistData.specialties)) {
+      specialties = (mixologistData.specialties as string[]).join(',');
+    } else {
+      specialties = String(mixologistData.specialties);
+    }
+
+    const mixologist: Mixologist = {
+      ...mixologistData,
       id,
       rating: mixologistData.rating !== undefined ? mixologistData.rating : 5.0,
       availability: mixologistData.availability !== undefined ? mixologistData.availability : true,
       featured: mixologistData.featured !== undefined ? mixologistData.featured : false,
       maxGuests: mixologistData.maxGuests || 100,
-      specialties: typeof mixologistData.specialties === 'string' ? mixologistData.specialties : mixologistData.specialties.join(',')
+      specialties
     };
     this.mixologists.set(id, mixologist);
     return mixologist;

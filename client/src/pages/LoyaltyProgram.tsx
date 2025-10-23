@@ -40,12 +40,12 @@ export default function LoyaltyProgramPage() {
   const [redeemDialogOpen, setRedeemDialogOpen] = useState(false);
 
   // Fetch user's loyalty program
-  const { 
+  const {
     data: program,
     isLoading: programLoading,
     error: programError,
     refetch: refetchProgram
-  } = useQuery({
+  } = useQuery<LoyaltyProgram>({
     queryKey: [`/api/user/${userId}/loyalty`],
     queryFn: getQueryFn({ on401: "returnNull" }),
     retry: false,
@@ -56,7 +56,7 @@ export default function LoyaltyProgramPage() {
   const {
     data: rewards,
     isLoading: rewardsLoading,
-  } = useQuery({
+  } = useQuery<LoyaltyReward[]>({
     queryKey: [`/api/loyalty/rewards/tier/${program?.tier || 'bronze'}`],
     queryFn: getQueryFn({ on401: "returnNull" }),
     enabled: !!program,

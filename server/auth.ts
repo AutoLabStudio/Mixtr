@@ -13,7 +13,7 @@ import { User, Partner } from "@shared/schema";
 // Extend Express Request type to include partner property
 declare global {
   namespace Express {
-    interface User extends Omit<User, 'id'> {
+    interface User extends Omit<import("@shared/schema").User, 'id'> {
       id: number;
     }
     interface Request {
@@ -192,16 +192,16 @@ export function setupAuth(app: Express) {
   });
   
   app.post("/api/login", (req, res, next) => {
-    passport.authenticate("local", (err, user, info) => {
+    passport.authenticate("local", (err: any, user: Express.User | false, info: any) => {
       if (err) {
         return next(err);
       }
-      
+
       if (!user) {
-        return res.status(401).json({ error: info.message || "Authentication failed" });
+        return res.status(401).json({ error: info?.message || "Authentication failed" });
       }
-      
-      req.login(user, (err) => {
+
+      req.login(user, (err: any) => {
         if (err) {
           return next(err);
         }

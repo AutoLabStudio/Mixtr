@@ -10,23 +10,25 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { getQueryFn } from "@/lib/queryClient";
-import { MixologyClass } from "@shared/schema";
+import { MixologyClass, ClassEnrollment, Bar } from "@shared/schema";
 import { formatCurrency, generateUserId } from "@/lib/utils";
+
+type MixologyClassWithBar = MixologyClass & { bar: Bar };
 
 export default function MixologyClassesPage() {
   const { toast } = useToast();
   const userId = generateUserId();
-  const [selectedClass, setSelectedClass] = useState<MixologyClass | null>(null);
+  const [selectedClass, setSelectedClass] = useState<MixologyClassWithBar | null>(null);
   const [address, setAddress] = useState("");
   const [enrollmentDialogOpen, setEnrollmentDialogOpen] = useState(false);
   const [classType, setClassType] = useState<"virtual" | "in-person">("virtual");
 
-  const { data: classes, isLoading } = useQuery({
+  const { data: classes, isLoading } = useQuery<MixologyClassWithBar[]>({
     queryKey: ['/api/mixology-classes/upcoming'],
     queryFn: getQueryFn({ on401: "returnNull" }),
   });
 
-  const { data: userEnrollments, refetch: refetchEnrollments } = useQuery({
+  const { data: userEnrollments, refetch: refetchEnrollments } = useQuery<ClassEnrollment[]>({
     queryKey: [`/api/user/${userId}/class-enrollments`],
     queryFn: getQueryFn({ on401: "returnNull" }),
   });
@@ -155,8 +157,8 @@ export default function MixologyClassesPage() {
   }
 
   // Format date for display
-  const formatClassDate = (date: string) => {
-    const d = new Date(date);
+  const formatClassDate = (date: string | Date) => {
+    const d = typeof date === 'string' ? new Date(date) : date;
     return `${d.toLocaleDateString()} at ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
   };
 
@@ -250,9 +252,9 @@ export default function MixologyClassesPage() {
 
       <h2 className="text-2xl font-semibold mb-4">Upcoming Classes</h2>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {classes && classes.map((mixologyClass: MixologyClass) => {
-          const isEnrolled = userEnrollments && userEnrollments.some((e: any) => e.classId === mixologyClass.id);
-          const isFull = mixologyClass.enrolled >= mixologyClass.capacity;
+        {classes && classes.map((mixologyClass) => {
+          const isEnrolled = userEnrollments && userEnrollments.some((e) => e.classId === mixologyClass.id);
+          const isFull = (mixologyClass.enrolled || 0) >= mixologyClass.capacity;
           
           return (
             <Card key={mixologyClass.id} className="overflow-hidden flex flex-col h-full">
@@ -287,7 +289,7 @@ export default function MixologyClassesPage() {
                   <div className="mt-4">
                     <h4 className="font-medium mb-1">Ingredients Kit Includes:</h4>
                     <ul className="list-disc pl-5">
-                      {mixologyClass.ingredients.map((ingredient: any, index: number) => (
+                      {(mixologyClass.ingredients as unknown as Array<{ name: string; quantity: string }>).map((ingredient, index) => (
                         <li key={index}>{ingredient.name} ({ingredient.quantity})</li>
                       ))}
                     </ul>

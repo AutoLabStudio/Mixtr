@@ -10,7 +10,17 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { BarChart3, Package, Tag, CalendarCheck, ChevronRight, TrendingUp } from "lucide-react";
-import { Promotion, Cocktail, Order } from "@shared/schema";
+import { Promotion, Cocktail, Order, CartItem } from "@shared/schema";
+
+type OrderWithItems = Order & { items: CartItem[] };
+
+type Analytics = {
+  totalRevenue: number;
+  totalOrders: number;
+  activePromotions: number;
+  totalCocktails: number;
+  popularCocktails: Array<{ name: string; sales: number; count: number }>;
+};
 
 export default function PartnerDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -85,7 +95,7 @@ export default function PartnerDashboard() {
   });
 
   // Fetch bar's orders
-  const { data: orders = [] } = useQuery<Order[]>({
+  const { data: orders = [] } = useQuery<OrderWithItems[]>({
     queryKey: ["/api/partner/orders"],
     queryFn: async () => {
       const res = await fetch("/api/partner/orders");
@@ -98,7 +108,7 @@ export default function PartnerDashboard() {
   });
 
   // Fetch bar's analytics
-  const { data: analytics, isLoading: isLoadingAnalytics } = useQuery({
+  const { data: analytics, isLoading: isLoadingAnalytics } = useQuery<Analytics>({
     queryKey: ["/api/partner/analytics"],
     queryFn: async () => {
       const res = await fetch("/api/partner/analytics");
@@ -290,7 +300,7 @@ export default function PartnerDashboard() {
                               </p>
                             </div>
                             <div className="text-right">
-                              <Badge variant={order.status === "delivered" ? "success" : order.status === "pending" ? "outline" : "secondary"}>
+                              <Badge variant={order.status === "delivered" ? "default" : order.status === "pending" ? "outline" : "secondary"}>
                                 {order.status}
                               </Badge>
                               <p className="text-sm mt-1">
@@ -555,7 +565,7 @@ export default function PartnerDashboard() {
                           <div className="col-span-3">
                             <ScrollArea className="h-20">
                               <div className="space-y-1">
-                                {order.items.filter((item: any) => item.barId === partner.barId).map((item: any, idx: number) => (
+                                {order.items.filter((item) => 'barId' in item).map((item, idx) => (
                                   <div key={idx} className="text-sm">
                                     {item.quantity}x {item.name}
                                   </div>
@@ -567,7 +577,7 @@ export default function PartnerDashboard() {
                             ${order.total.toFixed(2)}
                           </div>
                           <div className="col-span-2">
-                            <Badge variant={order.status === "delivered" ? "success" : order.status === "pending" ? "outline" : "secondary"}>
+                            <Badge variant={order.status === "delivered" ? "default" : order.status === "pending" ? "outline" : "secondary"}>
                               {order.status}
                             </Badge>
                           </div>

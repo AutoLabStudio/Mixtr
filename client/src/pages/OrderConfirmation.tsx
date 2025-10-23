@@ -12,15 +12,17 @@ import { Check, Clock, MapPin, ArrowRight, Home, BarChart, Share2 } from "lucide
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatCurrency, calculateETA, getOrderStatusSteps } from "@/lib/utils";
 import { OrderTracker } from "@/components/OrderTracker";
-import type { Order } from "@shared/schema";
+import type { Order, CartItem } from "@shared/schema";
+
+type OrderWithItems = Order & { items: CartItem[] };
 
 export default function OrderConfirmation() {
   const { id } = useParams();
   const parsedId = id ? parseInt(id) : undefined;
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("standard");
-  
-  const { data: order, isLoading, error } = useQuery<Order>({
+
+  const { data: order, isLoading, error } = useQuery<OrderWithItems>({
     queryKey: [`/api/orders/${parsedId}`],
     enabled: !!parsedId,
   });
@@ -54,7 +56,7 @@ export default function OrderConfirmation() {
   }
   
   const statusInfo = getOrderStatusSteps(order.status);
-  const eta = calculateETA(order.items[0]?.deliveryTime || "30-40 min");
+  const eta = calculateETA("30-40 min"); // Using default delivery time estimate
   
   return (
     <>
