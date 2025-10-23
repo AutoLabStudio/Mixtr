@@ -1,0 +1,20 @@
+[Unit]
+Description=Mixtr Production Server
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=ilseralex
+WorkingDirectory=/home/ilseralex/Documents/Code/MP004_Mixtr
+Environment="NODE_ENV=production"
+Environment="PORT=5002"
+Environment="HOST=0.0.0.0"
+Environment="DATABASE_URL=postgresql://mixtr_user:Mixtr2025!SecurePass@localhost:5432/mixtr_prod"
+Environment="SESSION_SECRET=C/D7Dncn81x4fMW/8Scql9qLCVKw2WR4Jv2DDUldmPA="
+Environment="API_URL=http://10.147.17.70:5002"
+ExecStart=/usr/bin/npm start
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
